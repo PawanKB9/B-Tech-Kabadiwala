@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -11,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -19,9 +23,39 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/Home/card.jsx", "app/orders/page.jsx", "app/you/history/page.jsx", "app/ComonCode/UiCode/Navbar.jsx", "app/ComonCode/UiCode/advertisement.jsx", "app/orders/[oderid]/page.jsx", "app/Home/eScrapCard.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "app/Home/card.jsx",
+    "app/orders/page.jsx",
+    "app/you/history/page.jsx",
+    "app/CommonCode/UiCode/Navbar.jsx",
+    "app/CommonCode/UiCode/advertisement.jsx",
+    "app/orders/[orderId]/page.jsx",
+    "app/Home/eScrapCard.tsx",
+    "app/user/searchAddress.jsx",
+    "app/CommonCode/HelperComp/SearchAddress.jsx",
+    "app/CommonCode/auth/signup.tsx",
+    "app/Admin/layout.jsx",
+    "app/Admin/adminAuth/user/center.jsx",
+    "app/orders/userInfo.tsx",
+    "app/CommonCode/UiCode/avatarImg.jsx",
+    "app/Home/customOrder.tsx",
+    "app/RTK Query/orderApi.js",
+    "app/RTK Query/appApi.js",
+    "app/RTK Query/userApi.js",
+    "app/RTK Query/selectors.js",
+    "app/RTK Query/store.js",
+    ".next/dev/types/**/*.ts"
+, "app/CommonCode/auth/authGaurd.tsx", "app/CommonCode/auth/mapplsLoader.jsx"  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

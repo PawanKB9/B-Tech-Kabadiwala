@@ -23,8 +23,11 @@ export default function ScrapItem({
           src={imgUrl}
           alt={scrapName}
           fill
+          loading="lazy"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-contain rounded-lg"
-        /> 
+        />
+
       </div>
         <h3 className="self-center text-sm font-semibold text-gray-800">{scrapName}</h3>
       </div>

@@ -37,7 +37,9 @@
 
 @theme inline {
   --breakpoint-phone: 320px;
+  --breakpoint-smPhone: 460px;
   --breakpoint-lgPhone: 768px;
+  --breakpoint-laptop: 1200px;
 
 
   --color-background: var(--background);

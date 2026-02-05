@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "./Contexts/UserContext";
-import Navbar from "./ComonCode/UiCode/Navbar";
+import Navbar from "./CommonCode/UiCode/Navbar";
+import Providers from "./provider";
+import CaptchaProvider from "./CommonCode/auth/captchaProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,12 +32,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <div className="z-0">
-          <Navbar />
-          <UserProvider>
-            {children}
-          </UserProvider>
-        </div>
+        <Providers>
+          <div className="z-0">
+            <CaptchaProvider>
+              <Navbar />
+              <UserProvider>
+                {children}
+              </UserProvider>
+            </CaptchaProvider>
+          </div>
+        </Providers>
       </body>
     </html>
   );

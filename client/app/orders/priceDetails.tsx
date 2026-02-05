@@ -1,46 +1,140 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import ScrapItem from "./[oderid]/items";
-import { usePathname } from "next/navigation";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { sampleProducts } from "../ComonCode/Data/Materials";
 
-//Type Definitions
+import ScrapItem from "./[orderId]/items";
+import { useGetProductsByCenterQuery } from "../RTK Query/appApi";
+import {
+  // cart
+  useGetCartQuery,
+  useClearCartMutation,
+  useUpsertCartMutation,
+  //order
+  useGetOrderByIdQuery,
+  useCreateOrderMutation,
+  useUserUpdateOrderStatusMutation,
+  useUpdateOrderItemsMutation,
+} from "../RTK Query/orderApi";
+
+import { useCaptcha } from "../CommonCode/auth/captchaHook";
+
+/* ================= TYPES ================= */
+
 type Item = {
   productId: string;
   weight: number;
 };
 
+type Product = {
+  _id: string;
+  scrapName: string;
+  rate: number;
+  imgUrl?: string;
+  minWeight?: number;
+};
+
 type EnrichedItem = {
   id: string;
   name: string;
-  image: string;
+  image?: string;
   rate: number;
   weight: number;
   price: number;
-  minWeight: number;
+  minWeight?: number;
 };
 
-// Props Type
 type PriceDetailsPageProps = {
-  items: Item[];
+  items?: Item[];
+  mode?: "history" | "order" | "cart";
 };
 
-export default function PriceDetailsPage({ items }: PriceDetailsPageProps) {
-  console.log(items)
+/* ================= COMPONENT ================= */
+
+export default function PriceDetailsPage({
+  items,
+  mode,
+}: PriceDetailsPageProps) {
+  const router = useRouter();
+  const params = useParams();
+
+  const orderId = params.orderId as string | undefined;
+  const isEditable = mode === "order" || mode === "cart";
+
   const [hide, setHide] = useState(false);
-  const pathname = usePathname();
 
-  // Safely merge cart items with product details
+  /* ================= CAPTCHA ================= */
+  const { getCaptchaToken } = useCaptcha();
+
+  /* ================= API ================= */
+  const [upsertCart] = useUpsertCartMutation();
+  const [clearCart] = useClearCartMutation();
+  const [createOrder] = useCreateOrderMutation();
+
+  const [updateOrderItems] = useUpdateOrderItemsMutation();
+  const [userUpdateOrderStatus] = useUserUpdateOrderStatusMutation();
+
+  /* ================= DATA FETCH ================= */
+
+  const centerId = process.env.NEXT_PUBLIC_CENTERID;
+
+  const { data: productsData } =
+    useGetProductsByCenterQuery({centerId});
+
+  const [orderCaptchaToken, setOrderCaptchaToken] = useState<string | null>();
+
+  const { data: orderData, error: orderError } =
+    useGetOrderByIdQuery(
+      { orderId: orderId!, captchaToken: orderCaptchaToken },
+      {
+        skip: mode !== "order" || !orderId,
+      }
+    );
+
+
+
+    useEffect(() => {
+    if ((orderError as any)?.status === 403 && !orderCaptchaToken) {
+      (async () => {
+        const token = await getCaptchaToken();
+        setOrderCaptchaToken(token);
+      })();
+    }
+  }, [orderError, orderCaptchaToken, getCaptchaToken]);
+
+
+  const { data: cartData } =
+    useGetCartQuery(undefined, {
+      skip: !!items || mode !== "cart",
+    });
+
+  /* ================= RESOLVE ITEMS ================= */
+
+  const resolvedItems: Item[] = useMemo(() => {
+    if (items?.length) return items;
+    if (orderData?.items) return orderData.items;
+    if (cartData?.items) return cartData.items;
+    return [];
+  }, [items, orderData, cartData]);
+
+  /* ================= PRODUCT MAP ================= */
+
+  const productMap = useMemo(() => {
+    if (!productsData) return {};
+    const allProducts = Object.values(productsData).flat() as Product[];
+    return allProducts.reduce<Record<string, Product>>((acc, p) => {
+      acc[p._id] = p;
+      return acc;
+    }, {});
+  }, [productsData]);
+
+  /* ================= ENRICH ITEMS ================= */
+
   const enrichedItems: EnrichedItem[] = useMemo(() => {
-    if (!Array.isArray(items)) return [];
-
-    return items
-      .map((cartItem) => {
-        const product = sampleProducts.find(
-          (p) => p._id === cartItem.productId
-        );
+    return resolvedItems
+      .map((item) => {
+        const product = productMap[item.productId];
         if (!product) return null;
 
         return {
@@ -48,270 +142,247 @@ export default function PriceDetailsPage({ items }: PriceDetailsPageProps) {
           name: product.scrapName,
           image: product.imgUrl,
           rate: product.rate,
-          weight: cartItem.weight,
-          price: +(product.rate * cartItem.weight).toFixed(2),
+          weight: item.weight,
+          price: +(product.rate * item.weight).toFixed(2),
           minWeight: product.minWeight,
         };
       })
       .filter(Boolean) as EnrichedItem[];
-  }, [items]);
+  }, [resolvedItems, productMap]);
 
-  const [cart, setCart] = useState<EnrichedItem[]>(enrichedItems);
+  /* ================= CART STATE ================= */
+
+  const [cart, setCart] = useState<EnrichedItem[]>([]);
+  const userChangedCartRef = useRef(false);
+
+  /* Sync cart ONLY from server / props */
+  useEffect(() => {
+    setCart(enrichedItems);
+  }, [enrichedItems]);
+
+  /* ================= UPSERT CART (SAFE) ================= */
+  useEffect(() => {
+    if (!userChangedCartRef.current) return;
+    if (mode !== "cart" && mode !== "order") return;
+
+    userChangedCartRef.current = false;
+
+    const payload = {
+      orderId,
+      items: cart.map((i) => ({
+        productId: i.id,
+        scrapName: i.name,
+        measureType: "weight",
+        weight: i.weight,
+      })),
+    };
+
+    (async () => {
+      try {
+        if (mode === "cart") {
+          await upsertCart({ payload }).unwrap();
+        }
+
+        if (mode === "order" && orderId) {
+          await updateOrderItems({ orderId, payload }).unwrap();
+        }
+      } catch (e: any) {
+        if (e?.status === 403) {
+          const captchaToken = await getCaptchaToken();
+
+          if (mode === "cart") {
+            await upsertCart({ payload, captchaToken }).unwrap();
+          }
+
+          if (mode === "order" && orderId) {
+            await updateOrderItems({
+              orderId,
+              payload,
+              captchaToken,
+            }).unwrap();
+          }
+        }
+      }
+    })();
+  }, [
+    cart,
+    mode,
+    orderId,
+    upsertCart,
+    updateOrderItems,
+    getCaptchaToken,
+  ]);
+
+
+  /* ================= HANDLERS ================= */
 
   const handleDelete = (id: string) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+    if (!isEditable) return;
+    userChangedCartRef.current = true;
+    setCart((prev) => prev.filter((i) => i.id !== id));
   };
 
   const handleUpdate = (id: string, newWeight: number) => {
+    if (!isEditable) return;
+    userChangedCartRef.current = true;
     setCart((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, weight: newWeight, price: +(item.rate * newWeight).toFixed(2) }
-          : item
+      prev.map((i) =>
+        i.id === id
+          ? {
+              ...i,
+              weight: newWeight,
+              price: +(i.rate * newWeight).toFixed(2),
+            }
+          : i
       )
     );
   };
 
-  const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
-  const shippingCharge = 0.0;
-  const taxes = 2.0;
-  const total = subtotal + shippingCharge + taxes;
+  /* ================= CLEAR CART ================= */
+
+  const handleClearCart = async () => {
+    try {
+      await clearCart({}).unwrap();
+      router.push("/");
+    } catch (err: any) {
+      if (err?.status === 403) {
+        const captchaToken = await getCaptchaToken();
+        await clearCart({ captchaToken }).unwrap();
+        router.push("/");
+      }
+    }
+  };
+
+  /* ================= CREATE ORDER ================= */
+  const handleOrderPickup = async () => {
+    const payload = {
+      isCustomOrder: false,
+      items: cart.map((i) => ({
+        productId: i.id,
+        scrapName: i.name,
+        measureType: "weight",
+        weight: i.weight,
+      })),
+    };
+
+    try {
+      await createOrder({ payload }).unwrap();
+      router.push("/");
+    } catch (e: any) {
+      if (e?.status === 403) {
+        const captchaToken = await getCaptchaToken();
+        await createOrder({ payload, captchaToken }).unwrap();
+        router.push("/");
+      }
+    }
+  };
+
+  /* ================= TOTAL ================= */
+
+  const total = cart.reduce((a, i) => a + i.price, 0);
+
+  const handleFinalSell = async () => {
+    if (!orderId) return;
+
+    console.log(orderData)
+
+    if (!orderData) {
+      alert("Order is still loading. Please wait.");
+      return;
+    }
+
+    if (orderData.status !== "Arrived") {
+      alert("Order must be Arrived before final selling.");
+      return;
+    }
+
+    const itemsPayload = {
+      items: cart.map((i) => ({
+        productId: i.id,
+        scrapName: i.name,
+        measureType: "weight",
+        weight: i.weight,
+      })),
+    };
+
+    try {
+      // await updateOrderItems({ orderId, payload: itemsPayload }).unwrap();
+      const res = await userUpdateOrderStatus({ payload: { orderId } }).unwrap();
+      console.log(res)
+    } catch (err: any) {
+      if (err?.status === 403) {
+        const captchaToken = await getCaptchaToken();
+
+        await updateOrderItems({
+          orderId,
+          payload: itemsPayload,
+          captchaToken,
+        }).unwrap();
+
+        await userUpdateOrderStatus({
+          payload: { orderId },
+          captchaToken,
+        }).unwrap();
+      }
+    }
+  };
+
+  /* ================= UI ================= */
 
   return (
-    <main className="bg-gray-100 w-full flex justify-center items-center">
-      <div className="w-full p-0.5 min-w-[255px] max-w-lg bg-white rounded-xl shadow-md">
-        {/* Header */}
-        <details open className="border-b border-gray-200 pb-2 mb-3">
-          <summary className="text-lg px-3 font-semibold text-gray-800 flex items-center justify-between">
+    <main className="bg-gray-50 text-gray-800 w-full flex justify-center">
+      <div className="w-full max-w-lg bg-stone-100 rounded-xl p-2">
+
+        <details open>
+          <summary className="flex justify-between font-semibold">
             Price Details
-            <button
-              type="button"
-              className="cursor-pointer"
-              onClick={() => setHide(!hide)}
-            >
+            <button onClick={() => setHide(!hide)}>
               {hide ? <ChevronDown /> : <ChevronUp />}
             </button>
           </summary>
         </details>
 
-        {/* Scrap Items */}
         {!hide && (
-          <div className="space-y-2 duration-200 px-2">
+          <div className="space-y-2">
             {cart.map((item) => (
               <ScrapItem
                 key={item.id}
                 {...item}
                 onDelete={handleDelete}
                 onUpdate={handleUpdate}
+                disabled={!isEditable}
               />
             ))}
           </div>
         )}
 
-        {/* Shipping & Payment Details */}
-        <div className="mt-4 px-3 min-w-[260px] space-y-3 text-sm text-gray-700">
-          <div className="flex justify-between">
-            <span>Pickup</span>
-            <span className="text-gray-600">Free (3–4 days)</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Shipping</span>
-            <span className="text-gray-400">Add shipping address</span>
-          </div>
-          <div className="flex justify-between border-t pt-2 font-medium">
-            <span>Payment</span>
-            <span>Online</span>
-          </div>
-
-          <hr className="my-2" />
-
-          {/* Totals */}
-          {cart.map((item) => (
-            <div key={item.id} className="flex justify-between">
-              <span>{item.name}</span>
-              <span>₹{item.price.toFixed(2)}</span>
-            </div>
-          ))}
-          <div className="flex justify-between">
-            <span>Shipping Charge</span>
-            <span>₹{shippingCharge.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Taxes</span>
-            <span>₹{taxes.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between font-semibold">
-            <span>Total</span>
-            <span>₹{total.toFixed(2)}</span>
-          </div>
+        <div className="mt-4 flex justify-between font-semibold">
+          <span>Total</span>
+          <span>₹{total.toFixed(2)}</span>
         </div>
 
-        {/* Footer Buttons */}
-        <div className="px-2 mt-5">
-          {/* For Order details page */}
-          {pathname.startsWith("/orders/") && pathname !== "/orders/mycart" && (
-            <div className="flex gap-3">
-              <button className="flex-1 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
-                Cancel
-              </button>
-              <button className="flex-1 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition">
-                Sell Now
-              </button>
-            </div>
-          )}
-
-
-          {/* For Cart Page */}
-          {pathname === "/orders/mycart" && (
-            <button className="w-full py-2 mt-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition">
+        {isEditable && mode === "cart" && (
+          <div className="flex gap-3">
+            <button
+              onClick={handleOrderPickup}
+              className="w-full mt-4 bg-green-600 text-white py-2 rounded-xl"
+            >
               Order Pickup
             </button>
-          )}
-        </div>
+            <button
+              onClick={handleClearCart}
+              className="w-full mt-4 bg-red-600 text-white py-2 rounded-xl"
+            >
+              Clear Cart
+            </button>
+          </div>
+        )}
+        {mode === "order" && (
+          <button onClick={handleFinalSell} className="w-full mt-4 bg-green-600 text-white py-2 rounded-xl">
+            Finally Sell
+          </button>
+        )}
       </div>
     </main>
   );
 }
-
-
-// "use client";
-
-// // Make it Dlobally this component is used in multiple Places
-
-// import { useState } from "react";
-// import ScrapItem from "./[oderid]/items";
-// import { usePathname } from "next/navigation";
-// import { ChevronDown, ChevronUp } from "lucide-react";
-
-// export default function PriceDetailsPage() {
-//     const [hide, setHide] = useState(false);
-//     const pathname = usePathname();
-//     // const order = { // Recieved from props
-//     //   id: "ORD125",
-//     //   date: "2025-10-30",
-//     //   status: "Processing",
-//     //   items: [
-//     //     { material: "Paper", weight: 8, price: 90 },
-//     //     { material: "Plastic", weight: 3, price: 100 },
-//     //   ],
-//     // }
-//   const [items, setItems] = useState([
-//     {
-//       id: "1",
-//       name: "Plastic",
-//       image: '/plastic.jpg',
-//       rate: 13,
-//       weight: 8.0,
-//       price: 180,
-//     },
-//     {
-//       id: "2",
-//       // name: "Aluminum",
-//       name: "Raddi Old Newspaper",
-//       image: "/360_F_394273452_vyreTEqX9HTBoIadnZQPQejwm3Y1YYfK.jpg",
-//       rate: 13,
-//       weight: 8.1,
-//       price: 180,
-//     },
-//   ]);
-
-//   const handleDelete = (id: string) => {
-//     setItems(items.filter((item) => item.id !== id));
-//   };
-
-//   const handleUpdate = (id: string, newWeight: number) => {
-//     setItems(items.map((item) =>
-//       item.id === id ? { ...item, weight: newWeight, price: item.rate * newWeight } : item
-//     ));
-//   };
-
-//   const subtotal = items.reduce((acc, item) => acc + item.price, 0);
-//   const taxes = 2.0;
-//   const total = subtotal + taxes;
-// //    flex items-center justify-center
-
-//   return (
-//     <main className="bg-gray-100 w-full flex justify-center items-center">
-//       <div className="w-full p-0.5 min-w-[255px]  max-w-lg bg-white rounded-xl shadow-md">
-//         {/* Header */}
-//         <details open className="border-b border-gray-200 pb-2 mb-3">
-//           <summary className="text-lg px-3 font-semibold text-gray-800  flex items-center justify-between">
-//             Price Details
-//             <button className="cursor-pointer" onClick={()=> setHide(!hide)}>{hide ? <ChevronDown /> : <ChevronUp />}</button>
-//           </summary>
-//         </details>
-
-//         {/* Scrap Items */}
-//         {!hide ? <div className="space-y-2 duration-200 [@media(min-width:320px)]:px-2">
-//           {items.map((item) => (
-//             <ScrapItem
-//               key={item.id}
-//               {...item}
-//               onDelete={handleDelete}
-//               onUpdate={handleUpdate}
-//             />
-//           ))}
-//         </div> : null}
-
-//         {/* Shipping & Payment Details */}
-//         <div className="mt-4 px-3 min-w-[260px] space-y-3 text-sm text-gray-700">
-//           <div className="flex justify-between">
-//             <span>Pickup</span>
-//             <span className="text-gray-600">Free (3–4 days)</span>
-//           </div>
-//           <div className="flex justify-between">
-//             <span>Shipping</span>
-//             <span className="text-gray-400">Add shipping address</span>
-//           </div>
-//           <div className="flex justify-between border-t pt-2 font-medium">
-//             <span>Payment</span>
-//             <span>Online</span>
-//           </div>
-
-//           <hr className="my-2" />
-
-//           {/* Totals */}
-//           {items.map((item) => (
-//             <div key={item.id} className="flex justify-between">
-//               <span>{item.name}</span>
-//               <span>₹{item.price.toFixed(2)}</span>
-//             </div>
-//           ))}
-//           <div className="flex justify-between">
-//             <span>Shiping Charge</span>
-//             <span>₹{taxes.toFixed(2)}</span>
-//           </div>
-//           <div className="flex justify-between">
-//             <span>Taxes</span>
-//             <span>₹{taxes.toFixed(2)}</span>
-//           </div>
-//           <div className="flex justify-between font-semibold">
-//             <span>Total</span>
-//             <span>₹{total.toFixed(2)}</span>
-//           </div>
-//         </div>
-
-//         <div className="px-2 mt-5">
-//           {/* /Order */}
-//           {pathname === "/Order" && (
-//             <div className="flex gap-3">
-//               <button className="flex-1 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
-//                 Cancel
-//               </button>
-//               <button className="flex-1 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition">
-//                 Sell Now
-//               </button>
-//             </div>
-//           )}
-//           {/* /Mycart */}
-//           {pathname === "/orders/mycart" && (
-//             <button className="w-full py-2 mt-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition">
-//               Order Pickup
-//             </button>
-//           )}
-//         </div>
-//       </div>
-//     </main>
-//   );
-// }
-

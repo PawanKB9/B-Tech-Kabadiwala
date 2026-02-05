@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, X } from "lucide-react";
 import ProductCard from "./card";
-import ElectronicsWasteCard from "./eScrapCard";
-import { sampleProducts } from "../ComonCode/Data/Materials";
-import { electronicsWasteItems } from "../ComonCode/Data/Materials";
+import { useGetProductsByCenterQuery } from "../RTK Query/appApi";
 
-// ---- Types ----
+/* ---------------- TYPES ---------------- */
 type DailyProduct = {
   _id: string;
   imgUrl: string;
@@ -18,49 +16,40 @@ type DailyProduct = {
   minWeight: number;
 };
 
-type ElectronicProduct = {
-  _id: string;
-  imgUrl: string;
-  scrapName: string;
-  category: string;
-  isActive: boolean;
-  description: string;
-  items: string[];
-};
-
-// Combined Type
-type ProductType = DailyProduct | ElectronicProduct;
-
-// Combine all categories
-const ALL_ITEMS: ProductType[] = [...sampleProducts, ...electronicsWasteItems];
-
 export default function SearchScrap() {
-  const [query, setQuery] = useState("");
-  const [filtered, setFiltered] = useState<ProductType[]>([]);
+  const centerId = process.env.NEXT_PUBLIC_CENTERID
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { data, isLoading, isError } =
+    useGetProductsByCenterQuery({centerId});
+
+  const [query, setQuery] = useState("");
+  const [filtered, setFiltered] = useState<DailyProduct[]>([]);
+
+  /* ---------------- DAILY SCRAPS ONLY ---------------- */
+  const dailyScraps: DailyProduct[] = useMemo(() => {
+    if (!data) return [];
+    return (data["Daily Scraps"] ?? []).filter(
+      (p: DailyProduct) => p.isActive
+    );
+  }, [data]);
+
+  /* ---------------- SEARCH ---------------- */
+  const handleSearch = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const value = e.target.value;
     setQuery(value);
 
-    if (value.trim() === "") {
+    if (!value.trim()) {
       setFiltered([]);
       return;
     }
 
     const lower = value.toLowerCase();
 
-    const results = ALL_ITEMS.filter((item: ProductType) => {
-      const mainMatch = item.scrapName.toLowerCase().includes(lower);
-
-      // ------------------------------
-      // SPECIAL SEARCH FOR ELECTRONICS
-      // ------------------------------
-      const itemsMatch =
-        "items" in item &&
-        item.items.some((sub) => sub.toLowerCase().includes(lower));
-
-      return mainMatch || itemsMatch;
-    });
+    const results = dailyScraps.filter((item) =>
+      item.scrapName.toLowerCase().includes(lower)
+    );
 
     setFiltered(results);
   };
@@ -69,6 +58,8 @@ export default function SearchScrap() {
     setQuery("");
     setFiltered([]);
   };
+
+  if (isLoading || isError) return null;
 
   return (
     <div className="flex flex-col px-4 sm:px-12 items-center">
@@ -92,30 +83,25 @@ export default function SearchScrap() {
       {/* Search Results */}
       {query && (
         <section className="w-full px-3 py-3">
-          <h2 className="text-lg font-bold mb-3 text-gray-800">{query}</h2>
+          <h2 className="text-lg font-bold mb-3 text-gray-800">
+            {query}
+          </h2>
 
           <div className="flex gap-4 sm:gap-6 justify-start overflow-x-auto scrollbar-hide transition-all duration-300">
             {filtered.length > 0 ? (
               filtered.map((item) => (
                 <div key={item._id} className="flex-shrink-0">
-                  {/* Render different cards based on category */}
-                  {item.category === "Electronics Waste" ? (
-                    <ElectronicsWasteCard
-                      scrapName={item.scrapName}
-                      imgUrl={item.imgUrl}
-                      items={item.items}
-                    />
-                  ) : (
-                    <ProductCard
-                      scrapName={item.scrapName}
-                      rate={"rate" in item ? item.rate : 0}
-                      imgUrl={item.imgUrl}
-                    />
-                  )}
+                  <ProductCard
+                    scrapName={item.scrapName}
+                    rate={item.rate}
+                    imgUrl={item.imgUrl}
+                  />
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 italic">No matching materials found.</p>
+              <p className="text-gray-500 italic">
+                No matching materials found.
+              </p>
             )}
           </div>
         </section>

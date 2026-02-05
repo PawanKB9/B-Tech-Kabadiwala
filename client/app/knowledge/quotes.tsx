@@ -1,14 +1,21 @@
+"use client";
+
 import Image from "next/image";
 
 interface PromoCardProps {
   l1: string;
   l2: string;
-  image: string;
-  index: number; // used to alternate layout
+  image?: string;
+  index: number;
 }
 
-export default function PromoCard({ l1, l2, image, index }: PromoCardProps) {
-  const isReversed = index % 2 !== 0; // alternate layout
+export default function PromoCard({
+  l1,
+  l2,
+  image,
+  index,
+}: PromoCardProps) {
+  const isReversed = index % 2 !== 0;
 
   return (
     <div
@@ -18,18 +25,21 @@ export default function PromoCard({ l1, l2, image, index }: PromoCardProps) {
     >
       {/* Image */}
       <div className="relative w-24 h-24 lg:w-32 lg:h-32 flex-shrink-0">
-        <Image
-          src={image}
-          alt={l2}
-          fill
-          className="object-contain rounded-lg"
-        />
+        {image && (
+          <Image
+            src={image}
+            alt={`${l1} ${l2}`}
+            fill
+            sizes="(max-width: 640px) 60vw, (max-width: 1024px) 40vw, 300px"
+            className="object-contain rounded-lg"
+          />
+        )}
       </div>
 
       {/* Text */}
       <div
-        className={`text-left text-lg phone:text-xl lg:text-2xl text-nowrap font-bold text-green-700 ${
-          isReversed ? "text-right" : ""
+        className={`text-lg phone:text-xl lg:text-2xl font-bold text-green-700 ${
+          isReversed ? "text-right" : "text-left"
         }`}
       >
         <p>{l1}</p>

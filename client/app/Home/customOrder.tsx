@@ -1,178 +1,344 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Minus, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { useCreateOrderMutation } from "../RTK Query/orderApi";
+import { useGetUserDataQuery } from "../RTK Query/userApi";
+import { useCaptcha } from "../CommonCode/auth/captchaHook";
 
+type OrderItem = {
+  productId?: string;
+  scrapName: string;
+  measureType: "piece" | "weight";
+  piece?: number;
+  weight?: number;
+};
+
+/* ---------------- INPUT ---------------- */
+const Input = ({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  type?: "text" | "number";
+}) => (
+  <div>
+    <label className="block font-medium mb-1 text-gray-700">
+      {label}
+    </label>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full border border-gray-400 rounded-lg px-3 py-2"
+    />
+  </div>
+);
+
+/* ---------------- COMPONENT ---------------- */
 export default function CustomOrderAccordion() {
   const [open, setOpen] = useState(false);
 
-  const [scrapName, setScrapName] = useState("");
-  const [category, setCategory] = useState("");
+  /* ---------------- CAPTCHA STATE ---------------- */
+  const [captchaToken, setCaptchaToken] =
+    useState<string | undefined>();
+  const isBlocked = captchaToken === "__BLOCKED__";
 
-  const [orderType, setOrderType] = useState<"piece" | "weight">("piece");
-  const [pieces, setPieces] = useState(1);
-  const [weight, setWeight] = useState("");
+  const { getCaptchaToken } = useCaptcha();
 
-  const increasePieces = () =>
-  setPieces((prev) => {
-    const num = Number(prev);
-    return isNaN(num) || num < 1 ? 1 : num + 1;
+  /* ---------------- FORM ---------------- */
+  const [form, setForm] = useState({
+    scrapName: "",
+    category: "",
+    orderType: "piece" as "piece" | "weight",
+    piece: "1",
+    weight: "",
   });
 
-  const decreasePieces = () =>
-    setPieces((prev) => (prev > 1 ? prev - 1 : 1));
+  const [items, setItems] = useState<OrderItem[]>([]);
 
-  const handlePiecesInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    // const value = e.target.value
-    setPieces(value);
+  /* ---------------- USER DATA ---------------- */
+  const {
+    data: userRes,
+    isFetching: isUserFetching,
+    error: userError,
+  } = useGetUserDataQuery(
+    { captchaToken },
+    { skip: isBlocked }
+  );
+
+  const userCaptchaTriedRef = useRef(false);
+
+  /* USER DATA → CAPTCHA RETRY (ONCE) */
+  useEffect(() => {
+    if (!userRes?.captcha_required) return;
+    if (userCaptchaTriedRef.current) return;
+
+    userCaptchaTriedRef.current = true;
+
+    (async () => {
+      const token = await getCaptchaToken(
+        "custom-order-user"
+      );
+      if (!token) {
+        setCaptchaToken("__BLOCKED__");
+        return;
+      }
+      setCaptchaToken(token);
+    })();
+  }, [userRes, getCaptchaToken]);
+
+  /* ---------------- CREATE ORDER ---------------- */
+  const [createOrder, createState] =
+    useCreateOrderMutation();
+
+  const createCaptchaTriedRef = useRef(false);
+
+  /* ---------------- HELPERS ---------------- */
+  const update = (k: string, v: string) =>
+    setForm((p) => ({ ...p, [k]: v }));
+
+  const resetForm = () =>
+    setForm({
+      scrapName: "",
+      category: "",
+      orderType: "piece",
+      piece: "1",
+      weight: "",
+    });
+
+  /* ---------------- ADD ITEM ---------------- */
+  const addItem = () => {
+    if (!form.scrapName.trim()) return;
+
+    const finalScrapName = form.category
+      ? `${form.scrapName} - ${form.category}`
+      : form.scrapName;
+
+    if (form.orderType === "piece") {
+      const pcs = Number(form.piece);
+      if (!pcs || pcs <= 0) return;
+
+      setItems((p) => [
+        ...p,
+        {
+          scrapName: finalScrapName,
+          measureType: "piece",
+          piece: pcs,
+        },
+      ]);
+    }
+
+    if (form.orderType === "weight") {
+      const wt = Number(form.weight);
+      if (!wt || wt <= 0) return;
+
+      setItems((p) => [
+        ...p,
+        {
+          scrapName: finalScrapName,
+          measureType: "weight",
+          weight: wt,
+        },
+      ]);
+    }
+
+    resetForm();
   };
 
-  const handleSubmit = () => {
-    const payload =
-      orderType === "piece"
-        ? { scrapName, category, orderType, pieces }
-        : { scrapName, category, orderType, weight };
+  const removeItem = (index: number) =>
+    setItems((p) => p.filter((_, i) => i !== index));
 
-    console.log("Custom order placed:", payload);
-    alert("Your custom order has been submitted!");
+  /* ---------------- PLACE ORDER ---------------- */
+  const placeOrder = async () => {
+    if (!userRes?.user || items.length === 0 || isBlocked)
+      return;
+
+    try {
+      const res: any = await createOrder({
+        userId: userRes.user._id,
+        centerId: userRes.user.centerId,
+        location: userRes.user.location,
+        items,
+        isCustomOrder: true,
+        captchaToken,
+      }).unwrap();
+
+      if (
+        res?.captcha_required &&
+        !createCaptchaTriedRef.current
+      ) {
+        createCaptchaTriedRef.current = true;
+
+        const token = await getCaptchaToken(
+          "custom-order-create"
+        );
+        if (!token) {
+          setCaptchaToken("__BLOCKED__");
+          return;
+        }
+
+        setCaptchaToken(token);
+        return;
+      }
+
+      setItems([]);
+      setOpen(false);
+      setCaptchaToken(undefined);
+    } catch (err) {
+      console.error("Order creation failed", err);
+    }
   };
 
+  if (isBlocked) {
+    return (
+      <div className="p-4 text-red-600 font-semibold">
+        You are temporarily blocked. Please try again
+        later.
+      </div>
+    );
+  }
+
+  if (isUserFetching || userError) return null;
+
+  /* ---------------- UI ---------------- */
   return (
-    <div className="w-full max-w-3xl px-2 mx-auto mt-4">
-      {/* Accordion Header */}
+    <div className="w-full text-gray-800 max-w-3xl mx-auto mt-4 px-2">
       <button
-        className="w-full flex items-center justify-between bg-green-600 text-white px-4 py-3 rounded-lg shadow-md"
-        onClick={() => setOpen((prev) => !prev)}
+        className="w-full flex justify-between bg-green-600 text-white px-4 py-3 rounded-lg"
+        onClick={() => setOpen((o) => !o)}
       >
-        <span className="text-lg font-semibold">Place Custom Scrap Order</span>
-        {open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        <span className="text-lg font-semibold">
+          Place Custom Scrap Order
+        </span>
+        {open ? <ChevronUp /> : <ChevronDown />}
       </button>
 
-      {/* Accordion Body */}
       <div
-        className={`overflow-hidden transition-all duration-300 border border-gray-300 rounded-b-lg bg-white ${
-          open ? "max-h-[1000px] p-5" : "max-h-0 p-0"
+        className={`transition-all border bg-white rounded-b-lg ${
+          open
+            ? "p-5 max-h-[1200px]"
+            : "p-0 max-h-0 overflow-hidden"
         }`}
       >
         {open && (
           <div className="flex flex-col gap-4">
+            <Input
+              label="Scrap Name"
+              value={form.scrapName}
+              onChange={(v) => update("scrapName", v)}
+              placeholder="Plastic, Iron, Paper..."
+            />
 
-            {/* Scrap Name */}
-            <div>
-              <label className="block font-medium mb-1 text-gray-700">
-                Scrap Name
-              </label>
-              <input
-                type="text"
-                value={scrapName}
-                onChange={(e) => setScrapName(e.target.value)}
-                placeholder="Enter scrap name"
-                className="w-full border border-gray-400 rounded-lg px-3 py-2 text-gray-800 
-                focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
+            <Input
+              label="Category"
+              value={form.category}
+              onChange={(v) => update("category", v)}
+              placeholder="Optional"
+            />
 
-            {/* Category */}
             <div>
-              <label className="block font-medium mb-1 text-gray-700">
-                Category
-              </label>
-              <input
-                type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="Enter category"
-                className="w-full border border-gray-400 rounded-lg px-3 py-2 text-gray-800 
-                focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-
-            {/* Order Type */}
-            <div>
-              <label className="block font-medium mb-1 text-gray-700">
+              <label className="block font-medium mb-1">
                 Order Type
               </label>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setOrderType("piece")}
-                  className={`flex-1 py-2 rounded-lg border text-center ${
-                    orderType === "piece"
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-gray-100 text-gray-700 border-gray-400"
-                  }`}
-                >
-                  By Piece
-                </button>
-
-                <button
-                  onClick={() => setOrderType("weight")}
-                  className={`flex-1 py-2 rounded-lg border text-center ${
-                    orderType === "weight"
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-gray-100 text-gray-700 border-gray-400"
-                  }`}
-                >
-                  By Weight
-                </button>
+              <div className="flex gap-3">
+                {["piece", "weight"].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => update("orderType", t)}
+                    className={`flex-1 py-2 rounded border ${
+                      form.orderType === t
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    {t === "piece"
+                      ? "By Piece"
+                      : "By Weight"}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* PIECES INPUT SECTION */}
-            {orderType === "piece" && (
-              <div className="flex text-gray-800 items-center justify-between border border-gray-400 rounded-lg px-3 py-3">
-                {/* Minus Button */}
-                <button
-                  onClick={decreasePieces}
-                  className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-
-                {/* Number Input */}
-                <input
-                  type="number"
-                  value={pieces}
-                  onChange={handlePiecesInput}
-                  min={1}
-                  className="w-20 max-w-[50%] flex-1 text-center border border-gray-300 rounded-lg py-1 text-lg font-semibold  
-                  focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-                <p>Pice</p>
-
-                {/* Plus Button */}
-                <button
-                  onClick={increasePieces}
-                  className="p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
+            {form.orderType === "piece" && (
+              <Input
+                label="Pieces"
+                type="number"
+                value={form.piece}
+                onChange={(v) => update("piece", v)}
+                placeholder="Quantity"
+              />
             )}
 
-            {/* WEIGHT INPUT */}
-            {orderType === "weight" && (
-              <div>
-                <label className="block font-medium mb-1 text-gray-700">
-                  Weight (kg)
-                </label>
-                <input
-                  type="number"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="Enter weight in kg"
-                  className="w-full border border-gray-400 rounded-lg px-3 py-2 text-gray-800 
-                  focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
+            {form.orderType === "weight" && (
+              <Input
+                label="Weight (kg)"
+                type="number"
+                value={form.weight}
+                onChange={(v) => update("weight", v)}
+                placeholder="Kg"
+              />
             )}
 
-            {/* Submit Button */}
             <button
-              onClick={handleSubmit}
-              className="w-full mt-2 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md transition"
+              onClick={addItem}
+              className="py-2 bg-blue-600 text-white rounded"
             >
-              Submit Order
+              Add Item
+            </button>
+
+            {items.length > 0 && (
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-2">
+                  Added Items
+                </h4>
+
+                {items.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center bg-gray-100 px-3 py-2 rounded mb-2"
+                  >
+                    <div>
+                      <div className="font-medium">
+                        {item.scrapName}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {item.measureType === "piece"
+                          ? `${item.piece} pcs`
+                          : `${item.weight} kg`}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => removeItem(i)}
+                    >
+                      <X className="w-4 h-4 text-red-600" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              disabled={
+                items.length === 0 ||
+                createState.isLoading
+              }
+              onClick={placeOrder}
+              className={`py-3 rounded text-white ${
+                items.length === 0
+                  ? "bg-gray-400"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
+            >
+              Order Pickup
             </button>
           </div>
         )}

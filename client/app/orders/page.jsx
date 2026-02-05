@@ -1,55 +1,61 @@
+"use client";
 
-import AdSidebar from '../ComonCode/UiCode/advertisement';
-import MyOrder from './MyOrders';
-import NoCurrentOrder from './NoBooking';
-import OrderFeedback from './orderFeed';
+// import OrderFeedback from "./orderFeed";
+// import AdSidebar from "../CommonCode/UiCode/advertisement";
+import MyOrder from "./MyOrders";
+import NoCurrentOrder from "./NoBooking";
+import OrderUserDetails from "./userInfo";
+import { useGetActiveOrdersQuery } from "../RTK Query/orderApi";
 
 export default function TrackPage() {
-  // status can be "confirmed" | "pickup" | "arrived" | "sold"
+  const { data, isLoading, isError } = useGetActiveOrdersQuery();
 
-  // [ "confirmed", "pickup", "arrived", "sold"]
-  const orders = [
-    {
-      id: "ORD123",
-      date: "2025-10-28",
-      status: "confirmed",
-      items: [
-        { productId: "Obj098Iron", weight: 10 },
-        { productId: "Obj100PlasticPipes", weight: 4 },
-      ],
-    },
-    {
-      id: "ORD124",
-      date: "2025-10-29",
-      status: "pickup",
-      items: [
-        { productId: "Obj094Copper", weight: 2.5 },
-      ],
-    },
-    {
-      id: "ORD125",
-      date: "2025-10-30",
-      status: "arrived",
-      items: [
-        { productId: "Obj095Paper", weight: 8 },
-        { productId: "Obj099PlasticBottles", weight: 3 },
-        { productId: "Obj093Aluminium", weight: 1.3 },
-        { productId: "Obj098Iron", weight: 3 },
-      ],
-    },
-  ];
+  /* ================= STATES ================= */
 
-  const isOreder = orders.length
+  if (isLoading) {
+    return (
+      <main className="h-[calc(100vh-56px)] flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500 text-lg">
+          Loading your active orders…
+        </p>
+      </main>
+    );
+  }
 
+  if (isError || !data) {
+    return (
+      <main className="h-[calc(100vh-56px)] flex items-center justify-center bg-gray-50">
+        <p className="text-red-500 text-lg">
+          Failed to load active orders.
+        </p>
+      </main>
+    );
+  }
+
+  /* ================= NORMALIZE API DATA ================= */
+
+  const orders = data.activeOrders ?? [];
+  const hasOrders = orders.length > 0;
+
+  /* ================= UI ================= */
 
   return (
+    <main className="h-[calc(100vh-56px)] pb-14 overflow-y-auto scrollbar-hide items-center gap-6 p-1 bg-gray-50">
+      
+      {!hasOrders ? (
+        <NoCurrentOrder />
+      ) : (
+        <MyOrder orders={orders} />
+      )}
 
-    <main className="h-[calc(100vh-56px)] pb-14 overflow-y-auto scrollbar-hide items-center gap-6  p-1 bg-gray-50">
-      {!isOreder ? <NoCurrentOrder />: <MyOrder orders={orders} />}   
+      <OrderUserDetails />
+
+      {/* Enable later when backend is ready */}
       {/* <OrderFeedback /> */}
     </main>
   );
 }
+
 
 // datbase 
 //[ _id	BaseModel -> { userId, createdAt, updatedAt }	Items	TotalAmount	Status	Payment ]

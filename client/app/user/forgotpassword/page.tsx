@@ -4,7 +4,7 @@ import React, { useState ,useEffect} from 'react';
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from 'lucide-react';
 // import { useForgotPasswordMutation } from '../RTK Query/UserApi.jsx';
-import OtpVerification from '../../ComonCode/HelperComp/OtpVerification';
+import OtpVerification from '../../CommonCode/auth/OtpVerification';
 import { toast } from 'react-hot-toast';
 
 

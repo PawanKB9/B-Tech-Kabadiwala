@@ -17,7 +17,7 @@ export default function BatchCard({
           src={img_url}
           alt={name}
           fill
-          unoptimized // remove in production
+          // unoptimized // remove in production
           className="object-cover w-full h-24 sm:h-32"
           sizes="(max-width: 640px) 100vw, 180px"
         />
