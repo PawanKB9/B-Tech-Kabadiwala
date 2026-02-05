@@ -1,5 +1,5 @@
 export type Product = {
-  id: string
+  _id: string
   isActive: boolean
   rate: number
   minWeight: number
@@ -12,7 +12,7 @@ export type Product = {
 
 export const SamplePlastic: Product[] = [
   {
-    id: "692d896dbc4f16c1dd0ffe71",
+    _id: "692d896dbc4f16c1dd0ffe71",
     isActive: true,
     rate: 20.0,
     minWeight: 2.0,
@@ -25,7 +25,7 @@ export const SamplePlastic: Product[] = [
       "Used PET bottles from beverages and household products suitable for recycling.",
   },
   {
-    id: "692d8a50bc4f16c1dd0ffe72",
+    _id: "692d8a50bc4f16c1dd0ffe72",
     isActive: true,
     rate: 20.0,
     minWeight: 2.0,
@@ -38,7 +38,7 @@ export const SamplePlastic: Product[] = [
       "Used PET bottles from beverages and household products suitable for recycling.",
   },
   {
-    id: "692d8addbc4f16c1dd0ffe73",
+    _id: "692d8addbc4f16c1dd0ffe73",
     isActive: true,
     rate: 25.5,
     minWeight: 5.0,
@@ -51,7 +51,7 @@ export const SamplePlastic: Product[] = [
       "HDPE and PVC pipes used in irrigation and plumbing with high resale value.",
   },
   {
-    id: "692d8b11bc4f16c1dd0ffe74",
+    _id: "692d8b11bc4f16c1dd0ffe74",
     isActive: true,
     rate: 16.0,
     minWeight: 3.0,
@@ -64,7 +64,7 @@ export const SamplePlastic: Product[] = [
       "Discarded plastic packaging sheets, wrapping films, and covers.",
   },
   {
-    id: "692d8b55bc4f16c1dd0ffe75",
+    _id: "692d8b55bc4f16c1dd0ffe75",
     isActive: true,
     rate: 22.0,
     minWeight: 2.5,
@@ -80,7 +80,7 @@ export const SamplePlastic: Product[] = [
 
 export const SampleDaily: Product[] = [
   {
-    id: "692d8b97bc4f16c1dd0ffe76",
+    _id: "692d8b97bc4f16c1dd0ffe76",
     isActive: true,
     rate: 20.0,
     minWeight: 2.0,
@@ -93,7 +93,7 @@ export const SampleDaily: Product[] = [
       "Used PET bottles from beverages and household products suitable for recycling.",
   },
   {
-    id: "692d8bdfbc4f16c1dd0ffe77",
+    _id: "692d8bdfbc4f16c1dd0ffe77",
     isActive: true,
     rate: 45.0,
     minWeight: 5.0,
@@ -106,7 +106,7 @@ export const SampleDaily: Product[] = [
       "Scrap iron and steel materials from construction or household waste.",
   },
   {
-    id: "692d8c3fbc4f16c1dd0ffe78",
+    _id: "692d8c3fbc4f16c1dd0ffe78",
     isActive: true,
     rate: 12.0,
     minWeight: 3.0,
@@ -118,7 +118,7 @@ export const SampleDaily: Product[] = [
     description: "Used cardboard boxes and packaging cartons.",
   },
   {
-    id: "692d8c81bc4f16c1dd0ffe79",
+    _id: "692d8c81bc4f16c1dd0ffe79",
     isActive: true,
     rate: 20.0,
     minWeight: 2.5,
@@ -130,7 +130,7 @@ export const SampleDaily: Product[] = [
     description: "Old newspapers and magazines for recycling.",
   },
   {
-    id: "692d8cd2bc4f16c1dd0ffe7a",
+    _id: "692d8cd2bc4f16c1dd0ffe7a",
     isActive: true,
     rate: 15.0,
     minWeight: 2.0,
@@ -143,7 +143,7 @@ export const SampleDaily: Product[] = [
       "Mixed paper waste including notebooks, sheets, and files.",
   },
   {
-    id: "692d8d07bc4f16c1dd0ffe7b",
+    _id: "692d8d07bc4f16c1dd0ffe7b",
     isActive: true,
     rate: 520.0,
     minWeight: 1.0,
@@ -156,7 +156,7 @@ export const SampleDaily: Product[] = [
       "High-value copper wires and components from electronic waste.",
   },
   {
-    id: "692d7f8cbc4f16c1dd0ffe65",
+    _id: "692d7f8cbc4f16c1dd0ffe65",
     isActive: true,
     rate: 120.0,
     minWeight: 1.5,
@@ -173,4 +173,4 @@ export const SampleDaily: Product[] = [
 export const SampleProducts: Record<string, Product[]> = {
   "Plastic Scraps": SamplePlastic,
   "Daily Scraps": SampleDaily,
-}
+} 
