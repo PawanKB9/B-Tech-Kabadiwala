@@ -2,47 +2,61 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"os"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var UserCollection *mongo.Collection
+func CreateIndexes(ctx context.Context, db *mongo.Database) {
 
-func InitMongoDB() *mongo.Client {
-	mongoURI := os.Getenv("MONGO_URL")
-	if mongoURI == "" {
-		log.Fatal("MONGO_URL not set in environment")
-	}
+    // ===================== USERS =====================
+    userCol := db.Collection("users")
 
-	clientOptions := options.Client().ApplyURI(mongoURI)
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-	if err != nil {
-		log.Fatal("MongoDB connection error:", err)
-	}
+    // Unique Phone
+    _, err := userCol.Indexes().CreateOne(ctx, mongo.IndexModel{
+        Keys: bson.M{"phone": 1},
+        Options: options.Index().SetUnique(true).SetName("unique_phone"),
+    })
+    if err != nil {
+        log.Println("Error creating User.phone index:", err)
+    }
 
-	UserCollection = client.Database("myapp").Collection("users")
+    // Unique Email
+    _, err = userCol.Indexes().CreateOne(ctx, mongo.IndexModel{
+        Keys: bson.M{"email": 1},
+        Options: options.Index().SetUnique(true).SetSparse(true).SetName("unique_email"),
+    })
+    if err != nil {
+        log.Println("Error creating User.email index:", err)
+    }
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+    // ===================== CENTERS =====================
+    centerCol := db.Collection("centers")
 
-	indexModel := mongo.IndexModel{
-		Keys: bson.M{"phone": 1},
-		Options: options.Index().SetUnique(true).SetName("unique_phone"),
-	}
+    // Geo index
+    _, err = centerCol.Indexes().CreateOne(ctx, mongo.IndexModel{
+        Keys: bson.M{
+            "location": "2dsphere",
+        },
+        Options: options.Index().SetName("center_location_geo"),
+    })
+    if err != nil {
+        log.Println("Error creating Center.location geo index:", err)
+    }
 
-	_, err = UserCollection.Indexes().CreateOne(ctx, indexModel)
-	if err != nil {
-		log.Fatal("Could not create index:", err)
-	} else {
-		fmt.Println("Unique index created for 'phone'")
-	}
+    // ===================== USER ACTIVITY =====================
+    userActCol := db.Collection("userActivities")
 
-	fmt.Println("Connected to MongoDB Atlas successfully!")
-	return client
+    // Unique userId → ensures one activity doc per user, fast lookup
+    _, err = userActCol.Indexes().CreateOne(ctx, mongo.IndexModel{
+        Keys: bson.M{"userId": 1},
+        Options: options.Index().SetUnique(true).SetName("unique_userId"),
+    })
+    if err != nil {
+        log.Println("Error creating UserActivity.userId index:", err)
+    }
+
+    log.Println("All indexes created successfully")
 }

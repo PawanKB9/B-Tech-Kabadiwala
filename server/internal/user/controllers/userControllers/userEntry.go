@@ -2,309 +2,382 @@ package userControllers
 
 import (
 	"context"
-	"encoding/json"
-	"net/http"
+	// "net/http"
 	"time"
+	"reflect"
 	"fmt"
+	"github.com/gin-gonic/gin/binding"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/PawanKB9/BTechKabadiwala/internal/database"
-	"github.com/PawanKB9/BTechKabadiwala/internal/user/models"
-	"github.com/PawanKB9/BTechKabadiwala/internal/user/Auth"
+	auth "github.com/PawanKB9/BTechKabadiwala/internal/auth"
+	userModels "github.com/PawanKB9/BTechKabadiwala/internal/user/model"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var DB_NAME = "BTechKabadiwala"
+type UserController struct {
+	Client *mongo.Client
+	DBName string
+}
 
-// Signup
-func SignUp(client *mongo.Client) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// func NewUserController(client *mongo.Client, dbName string) *UserController {
+// 	return &UserController{
+// 		Client: client,
+// 		DBName: dbName,
+// 	}
+// }
+
+// ================= SIGN UP =================
+func (uc *UserController) SignUp() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		ctx := context.TODO()
+
+		otpVerifiedAny, exists := c.Get("otp_verified")
+		otpVerified := exists && otpVerifiedAny == true
 
 		var input struct {
 			Name          string                  `json:"name"`
 			Password      string                  `json:"password"`
 			Phone         string                  `json:"phone"`
 			Role          string                  `json:"role"`
-			IsOtpVerified bool                    `json:"isOtpVerified"`
 			Location      userModels.GeoJSONPoint `json:"location"`
 		}
 
-		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-			http.Error(w, "Invalid request body", http.StatusBadRequest)
+		if err := c.ShouldBindBodyWith(&input, binding.JSON); err != nil {
+			fmt.Printf("[SignUp] invalid request body: %v\n", err)
+			c.JSON(400, gin.H{"error": "Invalid request body"})
 			return
 		}
+		// fmt.Printf(input.payload)
 
-		// Validate fields
 		if input.Name == "" || input.Phone == "" || len(input.Location.Coordinates) != 2 {
-			http.Error(w, "Fields (name, phone, location) are required", http.StatusBadRequest)
+			c.JSON(400, gin.H{"error": "Fields (name, phone, location) are required"})
 			return
-		}
-
-		// Allowed roles
-		validRoles := map[string]bool{
-			"Customer":       true,
-			"Delivery Boy":   true,
-			"Center Manager": true,
-			"Store Manager":  true,
-			"Admin":          true,
-		}
-
-		if input.Role == "" || !validRoles[input.Role] {
-			input.Role = "Customer"
 		}
 
 		if input.Location.Type == "" {
 			input.Location.Type = "Point"
 		}
 
-		userCollection := database.GetCollection(client, DB_NAME, "users")
-
-		// Check if user exists
-		var existing userModels.User
-		err := userCollection.FindOne(ctx, bson.M{"phone": input.Phone}).Decode(&existing)
-
-		userExists := err == nil
-
-		// Case: User exists but is verified → ERROR
-		if userExists && existing.IsVerified {
-			http.Error(w, "User already exists", http.StatusBadRequest)
+		defaultCenterID, err := primitive.ObjectIDFromHex("692d7f8cbc4f16c1dd0ffe65")
+		if err != nil {
+			fmt.Printf("[SignUp] invalid default center id: %v\n", err)
+			c.JSON(400, gin.H{"error": "invalid id"})
 			return
 		}
 
-		// Password logic
-		var hashed string
-		if input.IsOtpVerified {
-			if input.Password == "" {
-				http.Error(w, "Password required when OTP verified", http.StatusBadRequest)
-				return
-			}
-			hashed, err = userAuth.HashPassword(input.Password)
-			if err != nil {
-				http.Error(w, "Password hashing error", http.StatusInternalServerError)
-				return
-			}
-		} else {
-			hashed = ""
+		centersCol := uc.Client.Database(uc.DBName).Collection("centers")
+
+		var nearestCenter struct {
+			ID primitive.ObjectID `bson:"_id"`
 		}
 
-		// Location handling
-		savedLocations := []userModels.GeoJSONPoint{input.Location}
+		err = centersCol.FindOne(ctx, bson.M{
+			"location": bson.M{
+				"$near": bson.M{
+					"$geometry": bson.M{
+						"type":        "Point",
+						"coordinates": input.Location.Coordinates,
+					},
+				},
+			},
+		}).Decode(&nearestCenter)
 
-		// CASE B: User exists & not verified → UPDATE it
-		if userExists && !existing.IsVerified {
+		assignedCenterID := defaultCenterID
+		if err == nil {
+			assignedCenterID = nearestCenter.ID
+		} else {
+			fmt.Printf("[SignUp] center $near failed, using default: %v\n", err)
+		}
 
+		userCollection := database.GetCollection(
+			uc.Client.Database(uc.DBName),
+			"users",
+		)
+
+		var existing userModels.User
+		err = userCollection.FindOne(ctx, bson.M{"phone": input.Phone}).Decode(&existing)
+		userExists := err == nil
+
+		var hashed string
+		now := time.Now()
+
+		if otpVerified {
+			if input.Password == "" {
+				c.JSON(400, gin.H{"error": "Password required when OTP is verified"})
+				return
+			}
+
+			hashed, err = auth.HashPassword(input.Password)
+			if err != nil {
+				fmt.Printf("[SignUp] password hashing failed: %v\n", err)
+				c.JSON(500, gin.H{"error": "Password hashing error"})
+				return
+			}
+		}
+
+		// ---------------- EXISTING USER ----------------
+		if userExists {
 			updateData := bson.M{
 				"$set": bson.M{
-					"name":           input.Name,
-					"phone":          input.Phone,
-					"role":           input.Role,
-					"password":       hashed,
-					"isVerified":     input.IsOtpVerified,
-					"primeLocation":  input.Location,
-					"savedLocations": savedLocations,
-					"updatedAt":      time.Now(),
+					"name":       input.Name,
+					"phone":      input.Phone,
+					"role":       input.Role,
+					"isVerified": otpVerified,
+					"centerId":   assignedCenterID,
+					"location":   input.Location,
+					"updatedAt":  now,
+				},
+				"$addToSet": bson.M{
+					"savedLocation": input.Location,
 				},
 			}
 
-			_, err := userCollection.UpdateByID(ctx, existing.ID, updateData)
+			if otpVerified {
+				updateData["$set"].(bson.M)["password"] = hashed
+				updateData["$set"].(bson.M)["passwordChangedAt"] = now
+				updateData["$set"].(bson.M)["lastTokenIssuedAt"] = now
+			}
+
+			_, err = userCollection.UpdateByID(ctx, existing.ID, updateData)
 			if err != nil {
-				http.Error(w, "Failed to update user", http.StatusInternalServerError)
+				fmt.Printf("[SignUp] UpdateByID failed | userID=%v | err=%v\n", existing.ID, err)
+				c.JSON(500, gin.H{"error": "Failed to update user"})
 				return
 			}
 
-			// Refresh object
 			existing.Name = input.Name
 			existing.Role = input.Role
-			existing.Password = hashed
-			existing.IsVerified = input.IsOtpVerified
+			existing.IsVerified = otpVerified
 			existing.Location = input.Location
-			existing.SavedLocation = savedLocations
-			existing.UpdatedAt = time.Now()
+			existing.CenterID = assignedCenterID
+			existing.UpdatedAt = now
 
-			// Create JWT only if verified
-			var token string
-			if input.IsOtpVerified {
-				token, err = userAuth.GenerateToken(existing.ID)
-				if err != nil {
-					http.Error(w, "Token generation error", http.StatusInternalServerError)
-					return
-				}
-
-				http.SetCookie(w, &http.Cookie{
-					Name:     "token",
-					Value:    token,
-					HttpOnly: true,
-					SameSite: http.SameSiteLaxMode,
-					Expires:  time.Now().Add(30 * 24 * time.Hour),
-				})
+			if otpVerified {
+				existing.Password = hashed
+				existing.PasswordChangedAt = now
+				existing.LastTokenIssuedAt = now
 			}
 
-			json.NewEncoder(w).Encode(struct {
-				Message string             `json:"message"`
-				User    userModels.User    `json:"user"`
-				Token   string             `json:"token,omitempty"`
-			}{
-				Message: "User created successfully",
-				User:    existing,
-				Token:   token,
-			})
+			if existing.SavedLocation == nil {
+				existing.SavedLocation = []userModels.GeoJSONPoint{}
+			}
 
+			found := false
+			for _, loc := range existing.SavedLocation {
+				if reflect.DeepEqual(loc, input.Location) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				existing.SavedLocation = append(existing.SavedLocation, input.Location)
+			}
+
+			var token string
+			if otpVerified {
+				token, err = auth.GenerateCustomerToken(existing.ID, assignedCenterID)
+				if err != nil {
+					fmt.Printf("[SignUp] token generation failed | userID=%v | err=%v\n", existing.ID, err)
+					c.JSON(500, gin.H{"error": "Token generation error"})
+					return
+				}
+				c.SetCookie("token", token, 60*60*24*30, "/", "", false, true)
+			}
+
+			c.JSON(200, gin.H{
+				"message":  "User updated successfully",
+				"user":     existing,
+				"centerId": assignedCenterID,
+				"token":    token,
+			})
 			return
 		}
 
-		// CASE A: User does NOT exist → CREATE new
+		// ---------------- NEW USER ----------------
 		newUser := userModels.User{
-			Name:          input.Name,
-			Phone:         input.Phone,
-			Role:          input.Role,
-			Password:      hashed,
-			IsVerified:    input.IsOtpVerified,
-			Location:      input.Location,
-			SavedLocation: savedLocations,
-			CreatedAt:     time.Now(),
-			UpdatedAt:     time.Now(),
+			Name:              input.Name,
+			Phone:             input.Phone,
+			Role:              input.Role,
+			IsVerified:        otpVerified,
+			Password:          hashed,
+			Location:          input.Location,
+			SavedLocation:     []userModels.GeoJSONPoint{input.Location},
+			CenterID:          assignedCenterID,
+			CreatedAt:         now,
+			UpdatedAt:         now,
+			PasswordChangedAt: now,
+			LastTokenIssuedAt: now,
 		}
 
 		res, err := userCollection.InsertOne(ctx, newUser)
 		if err != nil {
-			http.Error(w, "Failed to create user", http.StatusInternalServerError)
+			fmt.Printf("[SignUp] InsertOne failed | phone=%s | err=%v\n", newUser.Phone, err)
+			c.JSON(500, gin.H{"error": "Failed to create user"})
 			return
 		}
 
 		newUser.ID = res.InsertedID.(primitive.ObjectID)
 
-		// Create token if verified
 		var token string
-		if input.IsOtpVerified {
-			token, err = userAuth.GenerateToken(newUser.ID)
+		if otpVerified {
+			token, err = auth.GenerateCustomerToken(newUser.ID, assignedCenterID)
 			if err != nil {
-				http.Error(w, "Token generation error", http.StatusInternalServerError)
+				fmt.Printf("[SignUp] token generation failed | userID=%v | err=%v\n", newUser.ID, err)
+				c.JSON(500, gin.H{"error": "Token generation failed"})
 				return
 			}
-
-			http.SetCookie(w, &http.Cookie{
-				Name:     "token",
-				Value:    token,
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-				Expires:  time.Now().Add(30 * 24 * time.Hour),
-			})
+			c.SetCookie("token", token, 60*60*24*30, "/", "", false, true)
 		}
 
-		json.NewEncoder(w).Encode(struct {
-			Message string             `json:"message"`
-			User    userModels.User    `json:"user"`
-			Token   string             `json:"token,omitempty"`
-		}{
-			Message: "User created successfully",
-			User:    newUser,
-			Token:   token,
+		c.JSON(200, gin.H{
+			"message":  "User created successfully",
+			"user":     newUser,
+			"centerId": assignedCenterID,
+			"token":    token,
 		})
 	}
 }
 
-// Login
-func Login(client *mongo.Client) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// ================= LOGIN =================
+func (uc *UserController) Login() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		ctx := context.TODO()
+
 		var input struct {
 			Phone    string `json:"phone"`
 			Password string `json:"password"`
 		}
-		
-		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-			http.Error(w, "Invalid body", http.StatusBadRequest)
+
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(400, gin.H{"error": "Invalid body"})
 			return
 		}
-		
-		userCollection := database.GetCollection(client, DB_NAME, "users")
-		
+
+		userCollection := database.GetCollection(
+			uc.Client.Database(uc.DBName),
+			"users",
+		)
+
 		var user userModels.User
 		err := userCollection.FindOne(ctx, bson.M{"phone": input.Phone}).Decode(&user)
 		if err == mongo.ErrNoDocuments {
-			http.Error(w, "Invalid phone or password", http.StatusUnauthorized)
+			c.JSON(401, gin.H{"error": "Invalid phone or password"})
 			return
-			} else if err != nil {
-				http.Error(w, "DB error", http.StatusInternalServerError)
+		} else if err != nil {
+			c.JSON(500, gin.H{"error": "DB error"})
+			return
+		}
+
+		if !auth.ComparePassword(input.Password, user.Password) {
+			c.JSON(401, gin.H{"error": "Invalid phone or password"})
+			return
+		}
+
+		var token string
+
+		if user.Role == "Admin" {
+			token, err = auth.GenerateAdminToken(
+				user.ID,
+				user.CenterID,
+				user.Email,
+				user.Phone,
+			)
+
+			if err != nil {
+				c.JSON(500, gin.H{"error": "Admin token generation failed"})
 				return
 			}
-			fmt.Println("hello there")
-			
-		if !userAuth.ComparePassword(input.Password, user.Password) {
-			http.Error(w, "Invalid phone or password", http.StatusUnauthorized)
-			return
+
+			c.SetCookie("admin_token", token, 60*60*24*30, "/", "", false, true)
+
+		} else {
+			token, err = auth.GenerateCustomerToken(user.ID, user.CenterID)
+			if err != nil {
+				c.JSON(500, gin.H{"error": "Customer token generation failed"})
+				return
+			}
+
+			c.SetCookie("token", token, 60*60*24*30, "/", "", false, true)
 		}
 
-		token, err := userAuth.GenerateToken(user.ID)
-		if err != nil {
-			http.Error(w, "Token generation failed", http.StatusInternalServerError)
-			return
-		}
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "token",
-			Value:    token,
-			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
-			Expires:  time.Now().Add(30 * 24 * time.Hour),
-		})
-
-		json.NewEncoder(w).Encode(struct {
-			Message string      `json:"message"`
-			User    userModels.User `json:"user"`
-			Token   string      `json:"token"`
-		}{
-			Message: "Login successful",
-			User:    user,
-			Token:   token,
+		c.JSON(200, gin.H{
+			"message": "Login successful",
+			"user":    user,
+			"token":   token,
+			"role":    user.Role,
 		})
 	}
 }
 
-// Get Current User
-func GetCurrentUser(client *mongo.Client) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// ================= GET CURRENT USER =================
+func (uc *UserController) GetCurrentUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		ctx := context.TODO()
 
-		userID, ok := r.Context().Value("userID").(primitive.ObjectID)
-		if !ok {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		userCollection := database.GetCollection(
+			uc.Client.Database(uc.DBName),
+			"users",
+		)
+
+		var userID primitive.ObjectID
+		var role string
+
+		// ---------- CUSTOMER ----------
+		if userIDRaw, ok := c.Get("userID"); ok {
+			userID = userIDRaw.(primitive.ObjectID)
+			role = "Customer"
+		}
+
+		// ---------- ADMIN ----------
+		if adminIDRaw, ok := c.Get("adminID"); ok {
+			userID = adminIDRaw.(primitive.ObjectID)
+			role = "Admin"
+		}
+
+		if userID.IsZero() {
+			c.JSON(401, gin.H{"error": "Unauthorized"})
 			return
 		}
 
-		userCollection := database.GetCollection(client, DB_NAME, "users")
 		var user userModels.User
 		err := userCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
 		if err == mongo.ErrNoDocuments {
-			http.Error(w, "User not found", http.StatusNotFound)
+			c.JSON(404, gin.H{"error": "User not found"})
 			return
 		} else if err != nil {
-			http.Error(w, "DB error", http.StatusInternalServerError)
+			c.JSON(500, gin.H{"error": "Database error"})
 			return
 		}
 
 		user.Password = ""
 
-		json.NewEncoder(w).Encode(user)
+		c.JSON(200, gin.H{
+			"role": role,
+			"user": user,
+		})
 	}
 }
 
-// Logout
-func Logout() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-			http.SetCookie(w, &http.Cookie{
-				Name:     "token",
-				Value:    "",
-				MaxAge:   -1,
-				HttpOnly: true,
-				SameSite: http.SameSiteStrictMode,
-			})
+// ================= LOGOUT =================
+func (uc *UserController) Logout() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		//Auth context
+		_, exists := c.Get("userID")
+		_, ok := c.Get("adminID")
+		if !exists && !ok {
+			c.JSON(401, gin.H{"error": "Unauthorized"})
+			return
+		}
+		c.SetCookie("token", "", -1, "/", "", false, true)
+		c.SetCookie("admin_token", "", -1, "/", "", false, true)
 
-			json.NewEncoder(w).Encode(map[string]string{
-				"message": "Logout successful",
-			})
+		c.JSON(200, gin.H{
+			"message": "Logout successful",
+		})
 	}
 }
