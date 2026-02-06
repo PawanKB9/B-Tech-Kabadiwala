@@ -177,7 +177,7 @@ export default function DailyScrapsSection() {
         Daily Scraps
         {productsError && (
           <span className="ml-3 text-sm text-red-500">
-            (Showing sample items — products API failed)
+            (Showing sample items — Rate will be shown only after user Login/Signup)
           </span>
         )}
       </h2>

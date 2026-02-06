@@ -1,7 +1,7 @@
 export type Product = {
   _id: string
   isActive: boolean
-  rate: number
+  rate: string
   minWeight: number
   minPiece: number
   scrapName: string
@@ -14,7 +14,7 @@ export const SamplePlastic: Product[] = [
   {
     _id: "692d896dbc4f16c1dd0ffe71",
     isActive: true,
-    rate: 20.0,
+    rate: '_',
     minWeight: 2.0,
     minPiece: 0,
     scrapName: "Mixed Plastic",
@@ -27,7 +27,7 @@ export const SamplePlastic: Product[] = [
   {
     _id: "692d8a50bc4f16c1dd0ffe72",
     isActive: true,
-    rate: 20.0,
+    rate: '_',
     minWeight: 2.0,
     minPiece: 0,
     scrapName: "Plastic Bottles",
@@ -40,7 +40,7 @@ export const SamplePlastic: Product[] = [
   {
     _id: "692d8addbc4f16c1dd0ffe73",
     isActive: true,
-    rate: 25.5,
+    rate: '_',
     minWeight: 5.0,
     minPiece: 0,
     scrapName: "Plastic Pipes",
@@ -53,7 +53,7 @@ export const SamplePlastic: Product[] = [
   {
     _id: "692d8b11bc4f16c1dd0ffe74",
     isActive: true,
-    rate: 16.0,
+    rate: '_',
     minWeight: 3.0,
     minPiece: 0,
     scrapName: "Plastic Sheets",
@@ -66,7 +66,7 @@ export const SamplePlastic: Product[] = [
   {
     _id: "692d8b55bc4f16c1dd0ffe75",
     isActive: true,
-    rate: 22.0,
+    rate: '_',
     minWeight: 2.5,
     minPiece: 0,
     scrapName: "Plastic Containers",
@@ -82,7 +82,7 @@ export const SampleDaily: Product[] = [
   {
     _id: "692d8b97bc4f16c1dd0ffe76",
     isActive: true,
-    rate: 20.0,
+    rate: '_',
     minWeight: 2.0,
     minPiece: 0,
     scrapName: "Mixed Plastic",
@@ -95,7 +95,7 @@ export const SampleDaily: Product[] = [
   {
     _id: "692d8bdfbc4f16c1dd0ffe77",
     isActive: true,
-    rate: 45.0,
+    rate: '_',
     minWeight: 5.0,
     minPiece: 0,
     scrapName: "Iron",
@@ -108,7 +108,7 @@ export const SampleDaily: Product[] = [
   {
     _id: "692d8c3fbc4f16c1dd0ffe78",
     isActive: true,
-    rate: 12.0,
+    rate: '_',
     minWeight: 3.0,
     minPiece: 0,
     scrapName: "Carton",
@@ -120,7 +120,7 @@ export const SampleDaily: Product[] = [
   {
     _id: "692d8c81bc4f16c1dd0ffe79",
     isActive: true,
-    rate: 20.0,
+    rate: '_',
     minWeight: 2.5,
     minPiece: 0,
     scrapName: "Raddi-News Paper",
@@ -132,7 +132,7 @@ export const SampleDaily: Product[] = [
   {
     _id: "692d8cd2bc4f16c1dd0ffe7a",
     isActive: true,
-    rate: 15.0,
+    rate: '_',
     minWeight: 2.0,
     minPiece: 0,
     scrapName: "Paper",
@@ -145,7 +145,7 @@ export const SampleDaily: Product[] = [
   {
     _id: "692d8d07bc4f16c1dd0ffe7b",
     isActive: true,
-    rate: 520.0,
+    rate: '_'0,
     minWeight: 1.0,
     minPiece: 0,
     scrapName: "Copper",
@@ -158,7 +158,7 @@ export const SampleDaily: Product[] = [
   {
     _id: "692d7f8cbc4f16c1dd0ffe65",
     isActive: true,
-    rate: 120.0,
+    rate: '_'0,
     minWeight: 1.5,
     minPiece: 0,
     scrapName: "Aluminium",
