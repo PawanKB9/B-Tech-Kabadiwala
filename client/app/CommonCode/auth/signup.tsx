@@ -154,7 +154,21 @@ export default function SignUpPage() {
         localStorage.setItem('token', res.token)
       }
 
-      await getUserData(undefined).unwrap()
+      // Fetch user data - let it use the stored token
+      try {
+        const userData: any = await getUserData({}).unwrap()
+
+        // Handle captcha requirement for user-data endpoint
+        if (userData?.captcha_required) {
+          const userDataCaptcha = await getCaptchaToken("user-data");
+          if (userDataCaptcha) {
+            await getUserData({ captchaToken: userDataCaptcha }).unwrap()
+          }
+        }
+      } catch (userDataErr: any) {
+        console.error("getUserData error:", userDataErr);
+        // Proceed anyway - user data will load on next action
+      }
       
       alert("User created successfully!");
       console.log("User Created:", res);

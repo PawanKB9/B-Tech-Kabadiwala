@@ -79,7 +79,7 @@ const LoginForm = () => {
     }
 
     try {
-      /* ---------------- LOGIN ---------------- */
+      /* ========== STEP 1: LOGIN ========== */
       const res: any = await loginUser({ payload }).unwrap()
 
       if (res?.captcha_required) {
@@ -101,10 +101,28 @@ const LoginForm = () => {
         }
       }
 
-      /* ---------------- USER DATA FETCH ---------------- */
-      await getUserData({
-        captchaToken: userCaptchaToken,
-      }).unwrap()
+      /* ========== STEP 2: GET USER DATA ========== */
+      // Reset the guard for captcha retry
+      userCaptchaTriedRef.current = false
+      
+      try {
+        const userData: any = await getUserData({}).unwrap()
+
+        // Handle captcha requirement for user-data endpoint
+        if (userData?.captcha_required) {
+          const captchaToken = await getCaptchaToken('user-data')
+          if (!captchaToken) {
+            alert('Captcha failed')
+            return
+          }
+          // Retry with captcha token
+          await getUserData({ captchaToken }).unwrap()
+        }
+      } catch (userDataErr: any) {
+        console.error('getUserData error:', userDataErr)
+        // If getUserData fails, still proceed to home - user data will load on next request
+        console.warn('Could not fetch user data immediately, will load on next action')
+      }
 
       console.log('Login successful')
       router.push("/")
