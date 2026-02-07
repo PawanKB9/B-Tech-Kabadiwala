@@ -114,10 +114,13 @@ const LoginForm = () => {
       // Reset the guard for captcha retry
       userCaptchaTriedRef.current = false
       
+      let useDataSuccess = false
+
       try {
         // Pass token explicitly for first call
         const userData: any = await getUserData({ token: loginToken }).unwrap()
         console.log('✅ UserData response:', userData)
+        useDataSuccess = true
 
         // Handle captcha requirement for user-data endpoint
         if (userData?.captcha_required) {
@@ -136,19 +139,23 @@ const LoginForm = () => {
         console.error('❌ getUserData error:', userDataErr?.status, userDataErr?.data)
         // If it's 401/403, try one more time after a delay
         if (userDataErr?.status === 401 || userDataErr?.status === 403) {
-          console.log('🔄 Retrying getUserData after 500ms...')
-          await new Promise(resolve => setTimeout(resolve, 500))
+          console.log('🔄 Retrying getUserData after 800ms...')
+          await new Promise(resolve => setTimeout(resolve, 800))
           try {
             const retryUserData: any = await getUserData({ token: loginToken }).unwrap()
             console.log('✅ Retry getUserData succeeded:', retryUserData)
+            useDataSuccess = true
           } catch (retryErr: any) {
             console.error('❌ Retry getUserData also failed:', retryErr?.status)
-            // Proceed anyway - user data will load on next action
+            // Still proceed - user data will be fetched from app when they interact
           }
         } else {
           console.warn('⚠️  Could not fetch user data immediately, will load on next action')
         }
       }
+
+      // Add slight delay before redirect to ensure queries are registered
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       console.log('✅ Login successful, redirecting...')
       router.push("/")

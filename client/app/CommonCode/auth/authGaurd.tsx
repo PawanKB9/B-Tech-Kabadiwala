@@ -12,6 +12,15 @@ interface AuthGuardProps {
 
 export default function AuthGuard({ children }: AuthGuardProps) {
   const [showAuth, setShowAuth] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  /* ============ INIT TOKEN FROM LOCALSTORAGE ============ */
+  useEffect(() => {
+    setIsMounted(true);
+    const storedToken = localStorage.getItem('token');
+    setToken(storedToken);
+  }, []);
 
   /* ---------------- CAPTCHA STATE ---------------- */
   const [captchaToken, setCaptchaToken] =
@@ -20,14 +29,17 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   const { getCaptchaToken } = useCaptcha();
 
+  /* ============ SKIP QUERY IF NO TOKEN ============ */
+  const shouldSkip = !token || isBlocked || !isMounted;
+
   /* ---------------- USER DATA ---------------- */
   const {
     data,
     isFetching,
     isSuccess,
   } = useGetUserDataQuery(
-    { captchaToken },
-    { skip: isBlocked }
+    { captchaToken, token: token || undefined },
+    { skip: shouldSkip }
   );
 
   const userCaptchaTriedRef = useRef(false);
@@ -40,16 +52,28 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     userCaptchaTriedRef.current = true;
 
     (async () => {
-      const token = await getCaptchaToken("auth-guard");
-      if (!token) {
+      const captchaTokenValue = await getCaptchaToken("auth-guard");
+      if (!captchaTokenValue) {
         setCaptchaToken("__BLOCKED__");
         return;
       }
-      setCaptchaToken(token);
+      setCaptchaToken(captchaTokenValue);
     })();
   }, [data, getCaptchaToken]);
 
   const isAuthenticated = Boolean(data?.user) && isSuccess;
+
+  /* ============ LISTEN FOR TOKEN CHANGES ============ */
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token') {
+        setToken(e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   /* ---------------- INTERACTION ---------------- */
   const handleInteractionCapture = () => {
