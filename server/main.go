@@ -70,21 +70,40 @@ func main() {
 	}
 
 	// ---------------- CORS ----------------
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{clientURL},
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{
-			"Origin",
-			"Content-Type",
-			"Authorization",
-			"X-Captcha-Token",
-			"X-OTP-Token",
-			"X-OTP-Session-ID",
-		},
-		ExposeHeaders:    []string{"Authorization"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
+	// r.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     []string{clientURL},
+	// 	AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+	// 	AllowHeaders:     []string{
+	// 		"Origin",
+	// 		"Content-Type",
+	// 		"Authorization",
+	// 		"X-Captcha-Token",
+	// 		"X-OTP-Token",
+	// 		"X-OTP-Session-ID",
+	// 	},
+	// 	ExposeHeaders:    []string{"Authorization"},
+	// 	AllowCredentials: true,
+	// 	MaxAge:           12 * time.Hour,
+	// }))
+r.Use(cors.New(cors.Config{
+	AllowOriginFunc: func(origin string) bool {
+		return true // allow every origin dynamically
+	},
+	AllowMethods: []string{
+		"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
+	},
+	AllowHeaders: []string{
+		"Origin",
+		"Content-Type",
+		"Authorization",
+		"X-Captcha-Token",
+		"X-OTP-Token",
+		"X-OTP-Session-ID",
+	},
+	ExposeHeaders: []string{"Authorization"},
+	AllowCredentials: true,
+	MaxAge: 12 * time.Hour,
+}))
 
 	// ---------------- SECURITY HEADERS ----------------
 	r.Use(func(c *gin.Context) {
