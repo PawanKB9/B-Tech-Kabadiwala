@@ -87,15 +87,22 @@ export const userApi = api.injectEndpoints({
     }),
 
     getUserData: builder.query({
-      query: ({captchaToken}) => ({
-        url: '/api/user/user-data',
-        method: 'GET',
-        credentials: 'include',
-        headers: {
+      query: ({captchaToken, token}) => {
+        const headers = {
           'Content-Type': 'application/json',
           ...(captchaToken ? { 'X-Captcha-Token': captchaToken } : {}),
-        },
-      }),
+        }
+        // If token is explicitly passed, use it
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+        return {
+          url: '/api/user/user-data',
+          method: 'GET',
+          credentials: 'include',
+          headers,
+        }
+      },
       providesTags: ['User'],
     }),
     

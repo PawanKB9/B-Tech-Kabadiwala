@@ -81,6 +81,9 @@ const LoginForm = () => {
     try {
       /* ========== STEP 1: LOGIN ========== */
       const res: any = await loginUser({ payload }).unwrap()
+      console.log('✅ Login response:', res)
+
+      let loginToken = res?.token
 
       if (res?.captcha_required) {
         const captchaToken = await getCaptchaToken('login')
@@ -90,47 +93,72 @@ const LoginForm = () => {
         }
 
         const retryRes: any = await loginUser({ payload, captchaToken }).unwrap()
+        console.log('✅ Login with captcha response:', retryRes)
         // Store token from retry response
         if (retryRes?.token) {
+          loginToken = retryRes.token
           localStorage.setItem('token', retryRes.token)
+          console.log('✅ Token stored from retry:', retryRes.token.substring(0, 20) + '...')
         }
       } else {
         // Store token from initial response
         if (res?.token) {
           localStorage.setItem('token', res.token)
+          console.log('✅ Token stored:', res.token.substring(0, 20) + '...')
         }
       }
 
       /* ========== STEP 2: GET USER DATA ========== */
+      console.log('🔄 Calling getUserData with explicit token...')
+      
       // Reset the guard for captcha retry
       userCaptchaTriedRef.current = false
       
       try {
-        const userData: any = await getUserData({}).unwrap()
+        // Pass token explicitly for first call
+        const userData: any = await getUserData({ token: loginToken }).unwrap()
+        console.log('✅ UserData response:', userData)
 
         // Handle captcha requirement for user-data endpoint
         if (userData?.captcha_required) {
+          console.log('🔄 Captcha required for user-data, requesting...')
           const captchaToken = await getCaptchaToken('user-data')
           if (!captchaToken) {
+            console.warn('⚠️  Captcha failed for user-data')
             alert('Captcha failed')
             return
           }
           // Retry with captcha token
-          await getUserData({ captchaToken }).unwrap()
+          const retryUserData: any = await getUserData({ captchaToken, token: loginToken }).unwrap()
+          console.log('✅ UserData with captcha response:', retryUserData)
         }
       } catch (userDataErr: any) {
-        console.error('getUserData error:', userDataErr)
-        // If getUserData fails, still proceed to home - user data will load on next request
-        console.warn('Could not fetch user data immediately, will load on next action')
+        console.error('❌ getUserData error:', userDataErr?.status, userDataErr?.data)
+        // If it's 401/403, try one more time after a delay
+        if (userDataErr?.status === 401 || userDataErr?.status === 403) {
+          console.log('🔄 Retrying getUserData after 500ms...')
+          await new Promise(resolve => setTimeout(resolve, 500))
+          try {
+            const retryUserData: any = await getUserData({ token: loginToken }).unwrap()
+            console.log('✅ Retry getUserData succeeded:', retryUserData)
+          } catch (retryErr: any) {
+            console.error('❌ Retry getUserData also failed:', retryErr?.status)
+            // Proceed anyway - user data will load on next action
+          }
+        } else {
+          console.warn('⚠️  Could not fetch user data immediately, will load on next action')
+        }
       }
 
-      console.log('Login successful')
+      console.log('✅ Login successful, redirecting...')
       router.push("/")
     } catch (err: any) {
+      console.error('❌ Login error:', err?.status, err?.data)
       if (err?.status === 403) {
         alert('Blocked due to high risk')
       } else {
         console.error(err)
+        alert('Login failed: ' + (err?.data?.error || err?.message || 'Unknown error'))
       }
     }
   }

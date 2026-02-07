@@ -150,23 +150,27 @@ export default function SignUpPage() {
       }).unwrap();
 
       // Store token from response
+      let signupToken = res?.token
       if (res?.token) {
         localStorage.setItem('token', res.token)
+        console.log('✅ Token stored from signup:', res.token.substring(0, 20) + '...')
       }
 
-      // Fetch user data - let it use the stored token
+      // Fetch user data with explicit token
       try {
-        const userData: any = await getUserData({}).unwrap()
+        console.log('🔄 Calling getUserData with explicit token...')
+        const userData: any = await getUserData({ token: signupToken }).unwrap()
 
         // Handle captcha requirement for user-data endpoint
         if (userData?.captcha_required) {
+          console.log('🔄 Captcha required for user-data, requesting...')
           const userDataCaptcha = await getCaptchaToken("user-data");
           if (userDataCaptcha) {
-            await getUserData({ captchaToken: userDataCaptcha }).unwrap()
+            await getUserData({ captchaToken: userDataCaptcha, token: signupToken }).unwrap()
           }
         }
       } catch (userDataErr: any) {
-        console.error("getUserData error:", userDataErr);
+        console.error("❌ getUserData error:", userDataErr?.status, userDataErr?.data);
         // Proceed anyway - user data will load on next action
       }
       

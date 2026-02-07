@@ -130,7 +130,7 @@ export default function ProfileCard() {
         }).unwrap();
       }
 
-      router.replace("/login");
+      router.replace("/user/login-signup");
     } catch (err) {
       console.error("Logout failed", err);
     }
