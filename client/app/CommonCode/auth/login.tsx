@@ -89,7 +89,16 @@ const LoginForm = () => {
           return
         }
 
-        await loginUser({ payload, captchaToken }).unwrap()
+        const retryRes: any = await loginUser({ payload, captchaToken }).unwrap()
+        // Store token from retry response
+        if (retryRes?.token) {
+          localStorage.setItem('token', retryRes.token)
+        }
+      } else {
+        // Store token from initial response
+        if (res?.token) {
+          localStorage.setItem('token', res.token)
+        }
       }
 
       /* ---------------- USER DATA FETCH ---------------- */

@@ -69,7 +69,20 @@ func AllowCustomerOnly(c *gin.Context) (primitive.ObjectID, bool) {
 func (ac *AuthController) TokenValidityMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		tokenStr, _ := c.Cookie("token")
+		var tokenStr string
+
+		// Try Authorization header first
+		if authHeader := c.GetHeader("Authorization"); authHeader != "" {
+			if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+				tokenStr = authHeader[7:]
+			}
+		}
+
+		// Fall back to cookie
+		if tokenStr == "" {
+			tokenStr, _ = c.Cookie("token")
+		}
+
 		if tokenStr == "" {
 			c.Next()
 			return

@@ -51,7 +51,7 @@ func main() {
 
 	clientURL := os.Getenv("CLIENT_ORIGIN") // example: https://btechkabadiwala.com
 	if clientURL == "" {
-		clientURL = "http://localhost:3000"
+		clientURL = "https://b-tech-kabadiwala-2.onrender.com"
 	}
 
 	// ---------------- GIN ----------------

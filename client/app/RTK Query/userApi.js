@@ -49,6 +49,17 @@ export const userApi = api.injectEndpoints({
         },
       }),
       invalidatesTags: ['Auth', 'User', 'Products'],
+      async onQueryStarted(arg, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          // Store token in localStorage
+          if (data?.token) {
+            localStorage.setItem('token', data.token)
+          }
+        } catch (err) {
+          // Error handling is done in the component
+        }
+      },
     }),
 
     // -------- AUTHENTICATED --------
@@ -62,7 +73,17 @@ export const userApi = api.injectEndpoints({
           ...(captchaToken ? { 'X-Captcha-Token': captchaToken } : {}),
         },
       }),
-      invalidatesTags: ['Auth', 'User']
+      invalidatesTags: ['Auth', 'User'],
+      async onQueryStarted(arg, { queryFulfilled }) {
+        try {
+          await queryFulfilled
+          // Clear token from localStorage
+          localStorage.removeItem('token')
+        } catch (err) {
+          // Even if logout fails, clear the token
+          localStorage.removeItem('token')
+        }
+      },
     }),
 
     getUserData: builder.query({

@@ -122,28 +122,42 @@ func (ac *AuthController) AuthMiddleware() gin.HandlerFunc {
 
 		c.Set("role", "Public") // Default
 
-		// ---------------- ADMIN TOKEN ----------------
-		if token, _ := c.Cookie("admin_token"); token != "" {
-			decoded, err := DecodeAnyToken(token)
-			if err == nil {
-				if claims, ok := decoded.(*AdminClaims); ok {
-					c.Set("role", "Admin")
-					c.Set("adminID", claims.AdminID)
-					c.Set("centerID", claims.CenterID)
-					c.Set("email", claims.Email)
-					c.Set("phone", claims.Phone)
-					c.Next()
-					return
-				}
+		var token string
+
+		// Try to get token from Authorization header first (for production)
+		if authHeader := c.GetHeader("Authorization"); authHeader != "" {
+			// Extract token from "Bearer <token>"
+			if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+				token = authHeader[7:]
 			}
 		}
 
-		// ---------------- CUSTOMER TOKEN ----------------
-		if token, _ := c.Cookie("token"); token != "" {
+		// Fall back to cookie if no Authorization header
+		if token == "" {
+			token, _ = c.Cookie("admin_token")
+		}
+
+		if token == "" {
+			token, _ = c.Cookie("token")
+		}
+
+		// If we have a token, validate it
+		if token != "" {
 			decoded, err := DecodeAnyToken(token)
 			if err == nil {
-				if claims, ok := decoded.(*CustomerClaims); ok {
+				// Try Admin claims
+				if adminClaims, ok := decoded.(*AdminClaims); ok {
+					c.Set("role", "Admin")
+					c.Set("adminID", adminClaims.AdminID)
+					c.Set("centerID", adminClaims.CenterID)
+					c.Set("email", adminClaims.Email)
+					c.Set("phone", adminClaims.Phone)
+					c.Next()
+					return
+				}
 
+				// Try Customer claims
+				if customerClaims, ok := decoded.(*CustomerClaims); ok {
 					userCol := database.GetCollection(
 						ac.Client.Database(ac.DBName),
 						"users",
@@ -153,12 +167,12 @@ func (ac *AuthController) AuthMiddleware() gin.HandlerFunc {
 
 					err := userCol.FindOne(
 						c.Request.Context(),
-						bson.M{"_id": claims.UserID},
+						bson.M{"_id": customerClaims.UserID},
 					).Decode(&user)
 
 					if err == nil {
 						c.Set("role", "customer")
-						c.Set("userID", claims.UserID)
+						c.Set("userID", customerClaims.UserID)
 						c.Set("centerID", user.CenterID)
 						c.Next()
 						return

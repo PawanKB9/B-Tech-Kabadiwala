@@ -10,7 +10,9 @@ export const api = createApi({
 
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token')
-      if (token) headers.set('Authorization', `Bearer ${token}`)
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`)
+      }
       headers.set('Accept', 'application/json')
       return headers
     },

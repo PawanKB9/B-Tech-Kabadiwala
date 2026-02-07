@@ -186,7 +186,7 @@ func (uc *UserController) SignUp() gin.HandlerFunc {
 					c.JSON(500, gin.H{"error": "Token generation error"})
 					return
 				}
-				c.SetCookie("token", token, 60*60*24*30, "/", "", false, true)
+				c.SetCookie("token", token, 60*60*24*30, "/", "", true, true)
 			}
 
 			c.JSON(200, gin.H{
@@ -231,7 +231,7 @@ func (uc *UserController) SignUp() gin.HandlerFunc {
 				c.JSON(500, gin.H{"error": "Token generation failed"})
 				return
 			}
-			c.SetCookie("token", token, 60*60*24*30, "/", "", false, true)
+			c.SetCookie("token", token, 60*60*24*30, "/", "", true, true)
 		}
 
 		c.JSON(200, gin.H{
@@ -293,7 +293,7 @@ func (uc *UserController) Login() gin.HandlerFunc {
 				return
 			}
 
-			c.SetCookie("admin_token", token, 60*60*24*30, "/", "", false, true)
+			c.SetCookie("admin_token", token, 60*60*24*30, "/", "", true, true)
 
 		} else {
 			token, err = auth.GenerateCustomerToken(user.ID, user.CenterID)
@@ -302,7 +302,7 @@ func (uc *UserController) Login() gin.HandlerFunc {
 				return
 			}
 
-			c.SetCookie("token", token, 60*60*24*30, "/", "", false, true)
+			c.SetCookie("token", token, 60*60*24*30, "/", "", true, true)
 		}
 
 		c.JSON(200, gin.H{

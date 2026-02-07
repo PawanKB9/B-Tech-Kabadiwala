@@ -149,6 +149,11 @@ export default function SignUpPage() {
         captchaToken: captcha ?? undefined,
       }).unwrap();
 
+      // Store token from response
+      if (res?.token) {
+        localStorage.setItem('token', res.token)
+      }
+
       await getUserData(undefined).unwrap()
       
       alert("User created successfully!");
