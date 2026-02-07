@@ -18,7 +18,7 @@ export const userApi = api.injectEndpoints({
         },
       }),
       // optionally invalidates/provides tags:
-      invalidatesTags: ['User'],
+      invalidatesTags: ['User', 'Products'],
     }),
 
     forgotPassword: builder.mutation({
@@ -48,7 +48,7 @@ export const userApi = api.injectEndpoints({
           ...(captchaToken ? { 'X-Captcha-Token': captchaToken } : {}),
         },
       }),
-      invalidatesTags: ['Auth', 'User'],
+      invalidatesTags: ['Auth', 'User', 'Products'],
     }),
 
     // -------- AUTHENTICATED --------

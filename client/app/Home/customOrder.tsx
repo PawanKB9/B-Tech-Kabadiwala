@@ -206,7 +206,7 @@ export default function CustomOrderAccordion() {
     );
   }
 
-  if (isUserFetching || userError) return null;
+  if (isUserFetching || userError) return <DummyBox/>;
 
   /* ---------------- UI ---------------- */
   return (
@@ -345,4 +345,13 @@ export default function CustomOrderAccordion() {
       </div>
     </div>
   );
+}
+
+export function DummyBox(){
+
+  return(
+    <div className="bg-green-600 font-bold my-3 px-4 sm:max-w-2xl mx-auto rounded-lg py-2">
+      Custom Order Form
+    </div>
+  )
 }

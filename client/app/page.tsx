@@ -7,8 +7,6 @@ import DailyScrapsSection from './Home/homeComp'
 
 import ActionButtons from './Home/actionButton'
 import SearchScrap from './Home/search'
-// import AdSidebar from "./CommonCode/UiCode/advertisement"
-// import ElectronicsWasteSection from "./Home/eScrapPage"
 import CustomOrderForm from "./Home/customOrder"
 import AuthGuard from "./CommonCode/auth/authGaurd"
 import SlidingInfoBar from "./CommonCode/UiCode/helpBar"
@@ -21,13 +19,13 @@ export default function Home() {
     <main className=" mx-auto pb-32 h-[calc(100vh-56px)] overflow-y-auto scrollbar-hide bg-zinc-100">
       <AuthGuard>
         <ProfileCard/>
+      </AuthGuard>
         <ContactHelp/>
       {/* <Offers offerMsg={offerMsg} /> */}
         <SlidingInfoBar />
+      <AuthGuard>
         <SearchScrap />
         <CustomOrderForm />
-      {/* <DailyScrapsSection /> */}
-      {/* <ElectronicsWasteSection /> */}
         <DailyScrapsSection />
         <ActionButtons />
       </AuthGuard>

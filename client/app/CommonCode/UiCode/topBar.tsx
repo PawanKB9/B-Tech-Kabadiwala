@@ -86,7 +86,7 @@ export default function ProfileCard() {
       );
   }, [open]);
 
-  if (isFetching || error || !user) return null;
+  if (isFetching || error || !user) return <UnknownUser/>;
 
   /* ---------------- NAME + PHONE ---------------- */
   const namePhone = `${user.name} ${user.phone}`;
@@ -195,4 +195,31 @@ export default function ProfileCard() {
       </div>
     </div>
   );
+}
+
+export function UnknownUser(){
+   return(
+    <div className="flex items-center justify-between bg-gray-50 p-2 rounded-xl my-0.5 shadow-md w-full">
+      {/* User Info */}
+      <div>
+        <h2 className="text-green-700 font-bold">
+          Unknown User
+        </h2>
+        <p className="text-green-700 text-sm">
+          User is Not loged in Please do Login or Signup...
+        </p>
+      </div>
+
+      {/* Avatar + Dropdown */}
+      <div className="relative">
+          <ImageWithFallback
+            image=""
+            name={'Unknown'}
+            width={50}
+            height={50}
+            className="rounded-full bg-green-500 cursor-pointer border-2 border-green-600"
+          />
+      </div>
+    </div>
+   )
 }

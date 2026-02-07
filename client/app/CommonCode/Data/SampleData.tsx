@@ -145,7 +145,7 @@ export const SampleDaily: Product[] = [
   {
     _id: "692d8d07bc4f16c1dd0ffe7b",
     isActive: true,
-    rate: '_'0,
+    rate: '_',
     minWeight: 1.0,
     minPiece: 0,
     scrapName: "Copper",
@@ -158,7 +158,7 @@ export const SampleDaily: Product[] = [
   {
     _id: "692d7f8cbc4f16c1dd0ffe65",
     isActive: true,
-    rate: '_'0,
+    rate: '_',
     minWeight: 1.5,
     minPiece: 0,
     scrapName: "Aluminium",

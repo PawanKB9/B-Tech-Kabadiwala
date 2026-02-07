@@ -40,6 +40,7 @@ export default function TrackPage() {
   /* ================= UI ================= */
 
   return (
+    <AuthGuard>
     <main className="h-[calc(100vh-56px)] pb-14 overflow-y-auto scrollbar-hide items-center gap-6 p-1 bg-gray-50">
       
       {!hasOrders ? (
@@ -53,6 +54,7 @@ export default function TrackPage() {
       {/* Enable later when backend is ready */}
       {/* <OrderFeedback /> */}
     </main>
+    </AuthGuard>
   );
 }
 
