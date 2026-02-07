@@ -86,7 +86,7 @@ export default function SearchScrap() {
   if (isLoading) return null;
 
   return (
-    <div className="flex flex-col px-4 sm:px-12 items-center">
+    <div className="flex flex-col mt-3 px-4 sm:px-12 items-center">
       {/* Search Bar */}
       <div className="flex items-center w-full max-w-3xl bg-green-100 border border-green-300 rounded-lg px-3 py-2 shadow-sm">
         <Search className="text-green-900 w-5 h-5 flex-shrink-0" />

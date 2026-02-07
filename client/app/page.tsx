@@ -16,7 +16,7 @@ export default function Home() {
         scrap in a single order`;
 
  return (
-    <main className=" mx-auto pb-32 h-[calc(100vh-56px)] overflow-y-auto scrollbar-hide bg-zinc-100">
+    <main className=" mx-auto pb-32 h-[calc(100vh-56px)] gap-y-3 overflow-y-auto scrollbar-hide bg-zinc-100">
       <AuthGuard>
         <ProfileCard/>
       </AuthGuard>
