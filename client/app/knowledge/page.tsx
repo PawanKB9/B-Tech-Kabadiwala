@@ -49,7 +49,7 @@ export default function KnowledgeBase() {
   } = data;
 
   return (
-    <main className="w-full z-0 pb-6 bg-zinc-100 h-[calc(100vh-56px)] overflow-y-auto scrollbar-hide mx-auto p-1">
+    <main className="w-full z-0 pb-6 bg-zinc-100 h-[calc(100vh-140px)] overflow-y-auto scrollbar-hide mx-auto p-1">
       {/* Offer */}
       {/* <Offers offerMsg={offer} /> */}
       <SlidingInfoBar />

@@ -10,6 +10,7 @@ import SearchScrap from './Home/search'
 import CustomOrderForm from "./Home/customOrder"
 import AuthGuard from "./CommonCode/auth/authGaurd"
 import SlidingInfoBar from "./CommonCode/UiCode/helpBar"
+import ElectronicsWasteSection from "./Home/eScrapPage"
 
 export default function Home() {
   const offerMsg = `Get extra ₹3 per kg on 20 kg + of
@@ -19,14 +20,13 @@ export default function Home() {
     <main className=" mx-auto pb-32 h-[calc(100vh-56px)] gap-y-3 overflow-y-auto scrollbar-hide bg-zinc-100">
       <AuthGuard>
         <ProfileCard/>
-      </AuthGuard>
         <ContactHelp/>
-      {/* <Offers offerMsg={offerMsg} /> */}
+        {/* <Offers offerMsg={offerMsg} /> */}
         <SlidingInfoBar />
-      <AuthGuard>
         <SearchScrap />
         <CustomOrderForm />
         <DailyScrapsSection />
+        <ElectronicsWasteSection/>
         <ActionButtons />
       </AuthGuard>
     </main>

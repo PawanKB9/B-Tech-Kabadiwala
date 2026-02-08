@@ -30,8 +30,8 @@ export default function RootLayout({
   // Note we actually don't need any order context
   // hence remove <OrderProvider>
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" className="bg-zinc-100 text-gray-800" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased `}>
         <Providers>
           <div className="z-0">
             <CaptchaProvider>

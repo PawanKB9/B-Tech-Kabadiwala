@@ -174,3 +174,143 @@ export const SampleProducts: Record<string, Product[]> = {
   "Plastic Scraps": SamplePlastic,
   "Daily Scraps": SampleDaily,
 } 
+
+export const electronicsWasteItems = [
+  {
+    _id: "elect-01",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Old Mobile Phones",
+    imgUrl: "/electronics/mobile.jpg",
+    items: [
+      "Smartphones",
+      "Feature Phones",
+      "Broken Mobiles",
+      "Mobile Batteries",
+    ],
+  },
+  {
+    _id: "elect-02",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Laptops & Computers",
+    imgUrl: "/electronics/laptop.jpg",
+    items: [
+      "Laptops",
+      "Desktop CPU",
+      "Monitors",
+      "Keyboard & Mouse",
+    ],
+  },
+  {
+    _id: "elect-03",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Printers & Scanners",
+    imgUrl: "/electronics/printer.jpg",
+    items: [
+      "Printers",
+      "Scanners",
+      "Ink Cartridges",
+    ],
+  },
+  {
+    _id: "elect-04",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Home Appliances",
+    imgUrl: "/electronics/home.jpg",
+    items: [
+      "TV",
+      "Washing Machine",
+      "Microwave",
+      "Refrigerator",
+    ],
+  },
+  {
+    _id: "elect-05",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Computer Accessories",
+    imgUrl: "/electronics/accessories.jpg",
+    items: [
+      "Hard Disk",
+      "RAM",
+      "SMPS",
+      "Motherboard",
+    ],
+  },
+  {
+    _id: "elect-06",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Networking Devices",
+    imgUrl: "/electronics/network.jpg",
+    items: [
+      "Routers",
+      "Modems",
+      "WiFi Extenders",
+      "Switches",
+    ],
+  },
+  {
+    _id: "elect-07",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Office Electronics",
+    imgUrl: "/electronics/office.jpg",
+    items: [
+      "UPS",
+      "Projectors",
+      "CCTV Cameras",
+    ],
+  },
+  {
+    _id: "elect-08",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Audio & Video Devices",
+    imgUrl: "/electronics/audio.jpg",
+    items: [
+      "Speakers",
+      "Home Theatre",
+      "DVD Players",
+    ],
+  },
+  {
+    _id: "elect-09",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Kitchen Electronics",
+    imgUrl: "/electronics/kitchen.jpg",
+    items: [
+      "Mixer Grinder",
+      "Induction Cooktop",
+      "Electric Kettle",
+    ],
+  },
+  {
+    _id: "elect-10",
+    category: "Electronics Waste",
+    isActive: true,
+    scrapName: "Power & Charging Devices",
+    imgUrl: "/electronics/power.jpg",
+    items: [
+      "Chargers",
+      "Power Banks",
+      "Extension Boards",
+    ],
+  },
+  {
+    _id: "elect-11",
+    category: "Electronics Waste",
+    isActive: false, // ❌ will not render
+    scrapName: "Industrial Electronics",
+    imgUrl: "/electronics/industrial.jpg",
+    items: [
+      "PLC Panels",
+      "Control Boards",
+    ],
+  },
+];
+

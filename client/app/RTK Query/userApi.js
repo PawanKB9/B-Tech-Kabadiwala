@@ -18,7 +18,7 @@ export const userApi = api.injectEndpoints({
         },
       }),
       // optionally invalidates/provides tags:
-      invalidatesTags: ['User', 'Products'],
+      invalidatesTags: ['User'],
     }),
 
     forgotPassword: builder.mutation({
@@ -48,7 +48,7 @@ export const userApi = api.injectEndpoints({
           ...(captchaToken ? { 'X-Captcha-Token': captchaToken } : {}),
         },
       }),
-      invalidatesTags: ['Auth', 'User', 'Products'],
+      invalidatesTags: ['Auth'],
       async onQueryStarted(arg, { queryFulfilled }) {
         try {
           const { data } = await queryFulfilled

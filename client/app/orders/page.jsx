@@ -6,6 +6,7 @@ import MyOrder from "./MyOrders";
 import NoCurrentOrder from "./NoBooking";
 import OrderUserDetails from "./userInfo";
 import { useGetActiveOrdersQuery } from "../RTK Query/orderApi";
+import AuthGuard from "../CommonCode/auth/authGaurd";
 
 export default function TrackPage() {
   const { data, isLoading, isError } = useGetActiveOrdersQuery();

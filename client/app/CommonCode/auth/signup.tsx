@@ -177,8 +177,9 @@ export default function SignUpPage() {
       alert("User created successfully!");
       console.log("User Created:", res);
     } catch (err: any) {
-      console.error("createUser failed", err);
-      alert("Failed to create user");
+      console.error("❌ createUser failed:", err?.status, err?.data, err);
+      const errorMsg = err?.data?.error || err?.data?.message || "Failed to create user";
+      alert(`Failed to create user: ${errorMsg}`);
     }
   };
 

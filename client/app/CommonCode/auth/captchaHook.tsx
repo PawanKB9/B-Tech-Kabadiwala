@@ -6,7 +6,12 @@ export const useCaptcha = () => {
 
   const getCaptchaToken = async (action = "otp_request") => {
     if (!executeRecaptcha) return null
-    return await executeRecaptcha(action)
+    try {
+      return await executeRecaptcha(action)
+    } catch (err: any) {
+      console.error("reCAPTCHA execution failed:", err?.message || err)
+      return null
+    }
   }
 
   return { getCaptchaToken }

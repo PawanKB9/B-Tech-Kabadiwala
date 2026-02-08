@@ -210,7 +210,7 @@ export default function CustomOrderAccordion() {
 
   /* ---------------- UI ---------------- */
   return (
-    <div className="w-full text-gray-800 max-w-3xl mx-auto mt-4 px-2">
+    <div className="w-full text-gray-800 max-w-3xl mx-auto my-4 px-2">
       <button
         className="w-full flex justify-between bg-green-600 text-white px-4 py-3 rounded-lg"
         onClick={() => setOpen((o) => !o)}
@@ -222,14 +222,14 @@ export default function CustomOrderAccordion() {
       </button>
 
       <div
-        className={`transition-all border bg-white rounded-b-lg ${
+        className={`transition-all  bg-white ${
           open
             ? "p-5 max-h-[1200px]"
             : "p-0 max-h-0 overflow-hidden"
         }`}
       >
         {open && (
-          <div className="flex flex-col gap-4">
+          <div className="flex border-t flex-col gap-4">
             <Input
               label="Scrap Name"
               value={form.scrapName}
