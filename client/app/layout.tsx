@@ -33,9 +33,9 @@ export const metadata: Metadata = {
   ],
   icons: {
     icon: [
-      { url: "/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icon.png", sizes: "48x48", type: "image/png" },
     ],
-    apple: "/apple-touch-icon.png",
+    apple: "/icon.png",
   },
 };
 
@@ -56,7 +56,7 @@ export default function RootLayout({
         <Providers>
           <CaptchaProvider>
 
-            {/* 🔒 NAVBAR — NEVER BLURS */}
+            {/* NAVBAR — NEVER BLURS */}
             <div className="relative z-50 isolate">
               <Navbar />
             </div>
