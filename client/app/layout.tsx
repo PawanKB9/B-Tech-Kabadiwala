@@ -6,6 +6,7 @@ import { UserProvider } from "./Contexts/UserContext";
 import Navbar from "./CommonCode/UiCode/Navbar";
 import Providers from "./provider";
 import CaptchaProvider from "./CommonCode/auth/captchaProvider";
+import LocalBusinessSchema from "./components/LocalBusinessSchema";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,9 +40,9 @@ export const metadata: Metadata = {
   ],
   icons: {
     icon: [
-      { url: "/icon.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
     ],
-    apple: "/icon.png",
+    apple: "/apple-touch-icon.png",
   },
 };
 
@@ -61,6 +62,8 @@ export default function RootLayout({
       >
         <Providers>
           <CaptchaProvider>
+          <LocalBusinessSchema />
+
 
             {/* NAVBAR — NEVER BLURS */}
             <div className="relative z-50 isolate">
