@@ -181,7 +181,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Old Mobile Phones",
-    imgUrl: "/electronics/mobile.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1763438774/Mobile_Phones_Accessories_bieaet.png",
     items: [
       "Smartphones",
       "Feature Phones",
@@ -194,7 +194,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Laptops & Computers",
-    imgUrl: "/electronics/laptop.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1763438776/Home_Electronics_m38qgx.png",
     items: [
       "Laptops",
       "Desktop CPU",
@@ -207,7 +207,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Printers & Scanners",
-    imgUrl: "/electronics/printer.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1763438778/Printers_Office_Electronics_rndfca.png",
     items: [
       "Printers",
       "Scanners",
@@ -219,7 +219,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Home Appliances",
-    imgUrl: "/electronics/home.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1763438776/Home_Electronics_m38qgx.png",
     items: [
       "TV",
       "Washing Machine",
@@ -232,7 +232,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Computer Accessories",
-    imgUrl: "/electronics/accessories.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1770640859/computer-smps-500x500_duiikg.webp",
     items: [
       "Hard Disk",
       "RAM",
@@ -245,7 +245,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Networking Devices",
-    imgUrl: "/electronics/network.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1770640859/wi-fiextenders-de6c4ff1e03b486baf3b4c68ec1013c5_drgoro.webp",
     items: [
       "Routers",
       "Modems",
@@ -258,7 +258,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Office Electronics",
-    imgUrl: "/electronics/office.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1770640859/81gjeuJdkjL_jx3wqo.webp",
     items: [
       "UPS",
       "Projectors",
@@ -270,7 +270,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Audio & Video Devices",
-    imgUrl: "/electronics/audio.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1770640859/71u92FobRfL_ujfxbl.webp",
     items: [
       "Speakers",
       "Home Theatre",
@@ -282,7 +282,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Kitchen Electronics",
-    imgUrl: "/electronics/kitchen.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1770640859/sea-stovetop-kettles-group-irvin-lin-05-6fcc5322cea84959bc6fa6a4dac82c2b_vbcypt.webp",
     items: [
       "Mixer Grinder",
       "Induction Cooktop",
@@ -294,7 +294,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: true,
     scrapName: "Power & Charging Devices",
-    imgUrl: "/electronics/power.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1763438774/Mobile_Phones_Accessories_bieaet.png",
     items: [
       "Chargers",
       "Power Banks",
@@ -306,7 +306,7 @@ export const electronicsWasteItems = [
     category: "Electronics Waste",
     isActive: false, // ❌ will not render
     scrapName: "Industrial Electronics",
-    imgUrl: "/electronics/industrial.jpg",
+    imgUrl: "https://res.cloudinary.com/dtviazgmp/image/upload/v1770640860/electrical-control-panel-boards-771_t3j1un.jpg",
     items: [
       "PLC Panels",
       "Control Boards",

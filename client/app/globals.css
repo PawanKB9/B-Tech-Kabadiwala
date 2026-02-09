@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+nav {
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

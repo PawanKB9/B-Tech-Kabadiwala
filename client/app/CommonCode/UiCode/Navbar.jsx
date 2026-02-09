@@ -52,10 +52,11 @@ export default function Navbar() {
   };
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 bg-white shadow-md border-t border-gray-200
-      lg:static lg:border-none lg:shadow-none lg:mt-0 lg:flex lg:justify-center"
-    >
+      <nav
+        className="
+          fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-md z-50 isolate
+          backdrop-blur-none filter-none lg:static lg:z-50 lg:border-none lg:shadow-none lg:mt-0 lg:flex lg:justify-center">
+
       <ul className="flex justify-around items-center lg:justify-center lg:space-x-16 py-2 lg:py-4">
         {navItems.map(({ name, href, icon: Icon }) => {
           const isActive = pathname === href;
