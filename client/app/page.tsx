@@ -12,6 +12,13 @@ import AuthGuard from "./CommonCode/auth/authGaurd"
 import SlidingInfoBar from "./CommonCode/UiCode/helpBar"
 import ElectronicsWasteSection from "./Home/eScrapPage"
 
+export const metadata = {
+  title: "B Tech Kabadiwala | Scrap Pickup Service in Kanpur",
+  description:
+    "Doorstep scrap pickup in Kanpur. Sell paper, iron, plastic, e-waste at best prices. Call or WhatsApp 7518315870.",
+};
+
+
 export default function Home() {
   const offerMsg = `Get extra ₹3 per kg on 20 kg + of
         scrap in a single order`;

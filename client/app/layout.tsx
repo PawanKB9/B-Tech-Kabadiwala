@@ -17,7 +17,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://btechkabadiwala.in"),
+  alternates: {
+    canonical: "/",
+  },
   title: {
     default: "B Tech Kabadiwala | Scrap Pickup Service in Kanpur",
     template: "%s | B Tech Kabadiwala",
