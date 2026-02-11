@@ -20,6 +20,15 @@ const facultyData = [
     image: "",
   },
   {
+    name: "Rashi Agarwal",
+    designation: "Associate Professor",
+    department: "Computer Science and Engineering",
+    supportingRole:
+      "Guidance and Helping support for sustainable vision.",
+    image:
+      "https://res.cloudinary.com/dtviazgmp/image/upload/v1770790294/Rashi_mam_cam6nu.jpg",
+  },
+  {
     name: "Bineeta Singh",
     designation: "Assistant Professor",
     department: "Chemical Engineering",
