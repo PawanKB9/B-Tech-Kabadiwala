@@ -7,6 +7,8 @@ import Navbar from "./CommonCode/UiCode/Navbar";
 import Providers from "./provider";
 import CaptchaProvider from "./CommonCode/auth/captchaProvider";
 import LocalBusinessSchema from "./components/LocalBusinessSchema";
+import ToastProvider from "./CommonCode/HelperComp/toastProvider";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,16 +66,16 @@ export default function RootLayout({
           <CaptchaProvider>
           <LocalBusinessSchema />
 
-
             {/* NAVBAR — NEVER BLURS */}
             <div className="relative z-50 isolate">
               <Navbar />
             </div>
 
-            {/* 🔹 APPLICATION CONTENT */}
+            {/* APPLICATION CONTENT */}
             <div className="relative z-10">
               <UserProvider>
                 {children}
+                <ToastProvider/>
               </UserProvider>
             </div>
 

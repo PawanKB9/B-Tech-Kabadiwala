@@ -1,5 +1,6 @@
 "use client";
 
+import GlobalLoader from "@/app/CommonCode/UiCode/GlobalLoader";
 // import ScrapItem from "./items";
 // import { ChevronDown, ChevronUp } from "lucide-react";
 import OrderHistory from "./history";
@@ -18,6 +19,7 @@ export default function RecordPage() {
     return (
       <main className="bg-zinc-100 h-[calc(100vh-56px)] pb-14 flex items-center justify-center">
         <p className="text-gray-600">Loading order history…</p>
+        <GlobalLoader isLoading={isLoading} />;
       </main>
     );
   }

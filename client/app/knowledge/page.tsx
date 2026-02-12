@@ -10,6 +10,7 @@ import PromoCard from "./quotes";
 import { useCaptcha } from "../CommonCode/auth/captchaHook";
 import SlidingInfoBar from "../CommonCode/UiCode/helpBar";
 import { useGetAppDataQuery } from "@/app/RTK Query/appApi";
+import GlobalLoader from "../CommonCode/UiCode/GlobalLoader";
 
 export default function KnowledgeBase() {
   const { getCaptchaToken } = useCaptcha();
@@ -38,9 +39,9 @@ export default function KnowledgeBase() {
   }, [error, getCaptchaToken]);
 
   if (isLoading || !data) {
-    return <div className="text-center py-20">Loading...</div>;
+    return <GlobalLoader isLoading={isLoading} />;
   }
-
+  
   const {
     offer,
     posters,

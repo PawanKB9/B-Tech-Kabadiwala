@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import PriceDetailsPage from "@/app/orders/priceDetails";
 import { useGetOrderHistoryQuery } from "@/app/RTK Query/orderApi";
 import InvoiceCard from "./invoice";
+import GlobalLoader from "@/app/CommonCode/UiCode/GlobalLoader";
 
 export default function TrackPage() {
   const params = useParams();
@@ -17,20 +18,14 @@ export default function TrackPage() {
     useGetOrderHistoryQuery({ page: 1, limit: 10 });
 
   if (isLoading) {
-    return (
-      <main className="h-[100vh] flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500 text-lg">
-          Loading order history details…
-        </p>
-      </main>
-    );
+    return <GlobalLoader isLoading={isLoading} />;
   }
 
   if (isError || !data) {
     return (
       <main className="h-[100vh] flex items-center justify-center bg-gray-50">
         <p className="text-red-500 text-lg">
-          Failed to load order details.
+          Failed to load order details. <br /> It might have been removed or there was an error fetching it.
         </p>
       </main>
     );

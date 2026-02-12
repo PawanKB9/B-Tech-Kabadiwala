@@ -19,7 +19,7 @@ export const SamplePlastic: Product[] = [
     minPiece: 0,
     scrapName: "Mixed Plastic",
     imgUrl:
-      "https://res.cloudinary.com/dtviazgmp/image/upload/v1762953862/pexels-mart-production-7767614_qksb4o.jpg",
+      "https://res.cloudinary.com/dtviazgmp/image/upload/v1770817391/mix_plastic_wcigak.webp",
     category: "Daily Scraps",
     description:
       "Used PET bottles from beverages and household products suitable for recycling.",
@@ -87,6 +87,19 @@ export const SampleDaily: Product[] = [
     minPiece: 0,
     scrapName: "Mixed Plastic",
     imgUrl:
+      "https://res.cloudinary.com/dtviazgmp/image/upload/v1770817391/mix_plastic_wcigak.webp",
+    category: "Daily Scraps",
+    description:
+      "Used PET bottles from beverages and household products suitable for recycling.",
+  },
+  {
+    _id: "692d8a50bc4f16c1dd0ffe72",
+    isActive: true,
+    rate: '_',
+    minWeight: 2.0,
+    minPiece: 0,
+    scrapName: "Plastic Bottles",
+    imgUrl:
       "https://res.cloudinary.com/dtviazgmp/image/upload/v1762953862/pexels-mart-production-7767614_qksb4o.jpg",
     category: "Daily Scraps",
     description:
@@ -104,6 +117,19 @@ export const SampleDaily: Product[] = [
     category: "Daily Scraps",
     description:
       "Scrap iron and steel materials from construction or household waste.",
+  },
+  {
+    _id: "692d8addbc4f16c1dd0ffe73",
+    isActive: true,
+    rate: '_',
+    minWeight: 5.0,
+    minPiece: 0,
+    scrapName: "Plastic Pipes",
+    imgUrl:
+      "https://res.cloudinary.com/dtviazgmp/image/upload/v1762959108/plastic-pipes-cables-or-hoses-pile-on-green-grass-outdoors-background-blur-free-photo_cprs9o.webp",
+    category: "Daily Scraps",
+    description:
+      "HDPE and PVC pipes used in irrigation and plumbing with high resale value.",
   },
   {
     _id: "692d8c3fbc4f16c1dd0ffe78",
@@ -141,6 +167,19 @@ export const SampleDaily: Product[] = [
     category: "Daily Scraps",
     description:
       "Mixed paper waste including notebooks, sheets, and files.",
+  },
+  {
+    _id: "692d8b55bc4f16c1dd0ffe75",
+    isActive: true,
+    rate: '_',
+    minWeight: 2.5,
+    minPiece: 0,
+    scrapName: "Plastic Containers",
+    imgUrl:
+      "https://res.cloudinary.com/dtviazgmp/image/upload/v1762959108/hdpe-round-with-handle-bottle-500x500_j7jltu.webp",
+    category: "Daily Scraps",
+    description:
+      "Thick HDPE containers, buckets, and tubs used in households or industries.",
   },
   {
     _id: "692d8d07bc4f16c1dd0ffe7b",

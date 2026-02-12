@@ -6,6 +6,7 @@ import OrderTracker from "./tracker";
 import PriceDetailsPage from "../priceDetails";
 import { useGetActiveOrdersQuery, useGetOrderByIdQuery } from "@/app/RTK Query/orderApi";
 import { useCaptcha } from "@/app/CommonCode/auth/captchaHook";
+import GlobalLoader from "@/app/CommonCode/UiCode/GlobalLoader";
 
 export default function TrackPage() {
   const { getCaptchaToken } = useCaptcha();
@@ -51,17 +52,13 @@ export default function TrackPage() {
   const order = cachedOrder ?? orderResponse?.order;
 
   if (isLoading && !order) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        Loading order…
-      </div>
-    );
+    return <GlobalLoader isLoading={isLoading || !order} />;
   }
 
   if (!order) {
     return (
       <div className="h-screen flex items-center justify-center text-red-500">
-        Access blocked or order not found
+        Oops! It seems Access blocked or order not found
       </div>
     );
   }

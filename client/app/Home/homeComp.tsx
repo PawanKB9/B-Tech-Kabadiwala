@@ -9,6 +9,7 @@ import {
 } from "../RTK Query/orderApi";
 import { useCaptcha } from "../CommonCode/auth/captchaHook";
 import { SampleProducts } from "../CommonCode/Data/SampleData";
+import GlobalLoader from "../CommonCode/UiCode/GlobalLoader";
 
 type CartItem = {
   productId: string;
@@ -36,8 +37,9 @@ export default function DailyScrapsSection() {
     error: productsErrorObj,
   } = useGetProductsByCenterQuery({ centerId, captchaToken });
 
+
   /* ---------------- CART QUERY ---------------- */
-  const { data: cartData, error: cartError } =
+  const { data: cartData, isLoading: cartLoading, error: cartError } =
     useGetCartQuery({ captchaToken }, { skip: isBlocked });
 
   const [upsertCart] = useUpsertCartMutation();
@@ -170,6 +172,10 @@ export default function DailyScrapsSection() {
   if (isBlocked) return null;
 
   if (!products || products.length === 0) return null;
+
+  if(productsLoading || cartLoading) {
+    return <GlobalLoader isLoading={productsLoading || cartLoading} />;
+  }
 
   return (
     <section className="w-full text-gray-800 px-3 py-3">

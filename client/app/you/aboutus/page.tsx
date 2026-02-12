@@ -6,6 +6,7 @@ import { Mail, MapPin, Linkedin } from "lucide-react";
 
 import { useGetAppDataQuery } from "@/app/RTK Query/appApi";
 import { useCaptcha } from "@/app/CommonCode/auth/captchaHook";
+import GlobalLoader from "@/app/CommonCode/UiCode/GlobalLoader";
 
 export default function AboutUs() {
   const { getCaptchaToken } = useCaptcha();
@@ -50,8 +51,9 @@ export default function AboutUs() {
     maybeRequestCaptcha();
   }, [error, getCaptchaToken]);
 
-  if (isLoading || !appData) {
-    return <div className="text-center py-20">Loading...</div>;
+
+  if(isLoading || !appData) {
+    return <GlobalLoader isLoading={isLoading} />;
   }
 
   const { aboutUs } = appData;

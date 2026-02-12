@@ -7,6 +7,7 @@ import NoCurrentOrder from "./NoBooking";
 import OrderUserDetails from "./userInfo";
 import { useGetActiveOrdersQuery } from "../RTK Query/orderApi";
 import AuthGuard from "../CommonCode/auth/authGaurd";
+import GlobalLoader from "../CommonCode/UiCode/GlobalLoader";
 
 export default function TrackPage() {
   const { data, isLoading, isError } = useGetActiveOrdersQuery();
@@ -14,20 +15,14 @@ export default function TrackPage() {
   /* ================= STATES ================= */
 
   if (isLoading) {
-    return (
-      <main className="h-[calc(100vh-56px)] flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500 text-lg">
-          Loading your active orders…
-        </p>
-      </main>
-    );
+    return <GlobalLoader isLoading={isLoading} />;
   }
 
   if (isError || !data) {
     return (
       <main className="h-[calc(100vh-56px)] flex items-center justify-center bg-gray-50">
         <p className="text-red-500 text-lg">
-          Failed to load active orders.
+          There is No Order! It can happens when <br /> user is not Log-in or Don't have any Active Orders 
         </p>
       </main>
     );

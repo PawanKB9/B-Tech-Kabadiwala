@@ -13,7 +13,7 @@ export default function AppExperienceFeedback() {
   };
 
   return (
-    <div className=" w-full max-w-3xl pb-24 sm:px-8 mx-auto bg-white p-4  rounded-2xl shadow-sm">
+    <div className=" w-full max-w-3xl pb-24 sm:px-8 mx-auto bg-white p-4 text-gray-800 rounded-2xl shadow-sm">
       <h2 className="text-xl sm:text-2xl font-bold text-green-700 mb-4 text-center">
         App Experience Feedback
       </h2>

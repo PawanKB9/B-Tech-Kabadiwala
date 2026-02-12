@@ -5,6 +5,7 @@ import { Shield, FileText, Lock, Scale, Users } from "lucide-react";
 
 import { useGetAppDataQuery } from "@/app/RTK Query/appApi";
 import { useCaptcha } from "@/app/CommonCode/auth/captchaHook";
+import GlobalLoader from "@/app/CommonCode/UiCode/GlobalLoader";
 
 export default function PoliciesAgreement() {
   const { getCaptchaToken } = useCaptcha();
@@ -32,11 +33,11 @@ export default function PoliciesAgreement() {
     runCaptcha();
   }, [error, getCaptchaToken]);
 
-  if (isLoading || !data) {
-    return <div className="text-center py-20">Loading...</div>;
-  }
-
   const { policyTerms, aboutUs } = data;
+  
+  if(isLoading || !data) {
+    return <GlobalLoader isLoading={isLoading} />;
+  }
 
   return (
     <main className="h-[100vh] pb-14 overflow-y-auto scrollbar-hide bg-gradient-to-b from-green-50 to-white text-gray-800 px-4 sm:px-8 py-10 flex flex-col items-center">
