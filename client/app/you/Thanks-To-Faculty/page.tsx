@@ -3,7 +3,7 @@ import FacultyCard from "./FacultyCard";
 const facultyData = [
   {
     name: "Vinod Kumar Yadav",
-    designation: "HOD",
+    designation: "Professor Ex-HOD",
     department: "Humanities & Social Sciences",
     supportingRole:
       "Mentor and continuous strategic guidance for entrepreneurial growth.",
@@ -13,11 +13,11 @@ const facultyData = [
   },
   {
     name: "Avinash Awadh",
-    designation: "Guest Faculty",
+    designation: "Professor",
     department: "Humanities & Social Sciences",
     supportingRole:
       "Financial Adviser providing structured financial planning and clarity.",
-    image: "",
+    image: "https://res.cloudinary.com/dtviazgmp/image/upload/v1770949168/Avinash_Awadh_Sir.png_nqhpzr.jpg",
   },
   {
     name: "Rashi Agarwal",
