@@ -5,7 +5,6 @@ import ImageWithFallback from "@/app/CommonCode/UiCode/avatarImg";
 
 export type FacultyCardProps = {
   name: string;
-  designation: string;
   department: string;
   supportingRole: string;
   image?: string;
@@ -14,7 +13,6 @@ export type FacultyCardProps = {
 
 export default function FacultyCard({
   name,
-  designation,
   department,
   supportingRole,
   image,
@@ -61,10 +59,6 @@ export default function FacultyCard({
           <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">
             Dr. {name}
           </h3>
-
-          <p className="mt-2 text-emerald-600 text-sm font-medium">
-            {designation}
-          </p>
 
           <p className="mt-1 text-gray-500 text-sm">
             {department}

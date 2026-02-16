@@ -3,7 +3,6 @@ import FacultyCard from "./FacultyCard";
 const facultyData = [
   {
     name: "Vinod Kumar Yadav",
-    designation: "Professor Ex-HOD",
     department: "Humanities & Social Sciences",
     supportingRole:
       "Mentor and continuous strategic guidance for entrepreneurial growth.",
@@ -13,15 +12,20 @@ const facultyData = [
   },
   {
     name: "Avinash Awadh",
-    designation: "Professor",
     department: "Humanities & Social Sciences",
     supportingRole:
       "Financial Adviser providing structured financial planning and clarity.",
     image: "https://res.cloudinary.com/dtviazgmp/image/upload/v1770949168/Avinash_Awadh_Sir.png_nqhpzr.jpg",
   },
   {
+    name: "Vivek Singh Verma",
+    department: "Computer Science and Engineering",
+    supportingRole:
+      "Guidance and Helping support for sustainable vision.",
+    image: "https://res.cloudinary.com/dtviazgmp/image/upload/v1771223181/Vivek_sir_xpnam7.jpg",
+  },
+  {
     name: "Rashi Agarwal",
-    designation: "Associate Professor",
     department: "Computer Science and Engineering",
     supportingRole:
       "Guidance and Helping support for sustainable vision.",
@@ -30,7 +34,6 @@ const facultyData = [
   },
   {
     name: "Bineeta Singh",
-    designation: "Assistant Professor",
     department: "Chemical Engineering",
     supportingRole:
       "Guidance and motivational support for sustainable vision.",
@@ -39,7 +42,6 @@ const facultyData = [
   },
   {
     name: "Divya Somvanshi",
-    designation: "Assistant Professor",
     department: "Physics",
     supportingRole:
       "Guidance and motivational support for sustainable vision.",
@@ -48,7 +50,6 @@ const facultyData = [
   },
   {
     name: "Soma Benerjee",
-    designation: "Assistant Professor",
     department: "Plastic Technology",
     supportingRole:
       "Guidance and motivational support for sustainable vision.",
@@ -85,7 +86,6 @@ export default function ThanksToFacultyPage() {
             <FacultyCard
               key={index}
               name={faculty.name}
-              designation={faculty.designation}
               department={faculty.department}
               supportingRole={faculty.supportingRole}
               image={faculty.image}
