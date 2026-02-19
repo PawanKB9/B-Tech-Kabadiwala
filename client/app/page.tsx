@@ -11,6 +11,7 @@ import CustomOrderForm from "./Home/customOrder"
 import AuthGuard from "./CommonCode/auth/authGaurd"
 import SlidingInfoBar from "./CommonCode/UiCode/helpBar"
 import ElectronicsWasteSection from "./Home/eScrapPage"
+// import GlobalLoader from "./CommonCode/UiCode/GlobalLoader" // for testing
 
 export const metadata = {
   title: "B Tech Kabadiwala | Scrap Pickup Service in Kanpur",
@@ -28,6 +29,7 @@ export default function Home() {
       <AuthGuard>
         <ProfileCard/>
         <ContactHelp/>
+        {/* <GlobalLoader isLoading={true} /> */}
         {/* <Offers offerMsg={offerMsg} /> */}
         <SlidingInfoBar />
         <SearchScrap />

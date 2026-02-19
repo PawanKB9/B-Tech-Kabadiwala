@@ -6,6 +6,14 @@ import { useEffect, useState } from "react";
 export default function GlobalLoader({ isLoading }: { isLoading: boolean }) {
   const [visible, setVisible] = useState(false);
 
+  const phoneNumber = process.env.NEXT_PUBLIC_HELP_PHONE || "8005000270";
+  const handleWhatsApp = () => {
+    window.open(`https://wa.me/${phoneNumber}`, "_blank");
+  };
+  const handleCall = () => {
+    window.location.href = `tel:${phoneNumber}`;
+  };
+
   useEffect(() => {
     if (isLoading) {
       setVisible(true);
@@ -29,6 +37,11 @@ export default function GlobalLoader({ isLoading }: { isLoading: boolean }) {
             priority
             className="object-contain"
           />
+        </div>
+        <div onClick={handleWhatsApp} className="text-lg font-bold flex gap-2 cursor-pointer text-gray-800">
+          <p onClick={handleCall}>Call +</p>
+          <p> WhatsApp:</p>
+          <p>8005000270</p>
         </div>
 
         {/* Light modern progress bar */}

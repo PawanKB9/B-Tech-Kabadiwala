@@ -33,6 +33,11 @@ const faqs = [
 
 export default function HelpCenter() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  // NEXT_PUBLIC_HELP_PHONE=8005000270
+// NEXT_PUBLIC_HELP_MAIL=BTECHKABADIWALA@ZOHOMAIL.IN
+
+const helpPhone = process.env.NEXT_PUBLIC_HELP_PHONE || "8005000270";
+const helpMail = process.env.NEXT_PUBLIC_HELP_MAIL || "BTECHKABADIWALA@ZOHOMAIL.IN";
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -102,30 +107,30 @@ export default function HelpCenter() {
           {/* Email */}
           <button
             type="button"
-            onClick={() => (window.location.href = "mailto:220104041@hbtu.ac.in")}
+            onClick={() => (window.location.href = "mailto:" + helpMail)}
             className="flex items-center gap-2 bg-green-600 text-white px-5 py-2 rounded-full hover:bg-green-700 transition-all shadow-sm"
           >
-            <Mail className="w-4 h-4" /> Email Support bindpawan500@gmail.com
+            <Mail className="w-4 h-4" /> Email Support {helpMail}
           </button>
 
           {/* Phone */}
           <button
             type="button"
-            onClick={() => (window.location.href = 'tel:+917518315870')}
+            onClick={() => (window.location.href = 'tel:' + helpPhone)}
             className="flex items-center gap-2 bg-green-100 text-green-700 px-5 py-2 rounded-full hover:bg-green-200 transition-all shadow-sm"
           >
-            <Phone className="w-4 h-4" /> +91 7518315870
+            <Phone className="w-4 h-4" /> +91 {helpPhone}
           </button>
 
           {/* WhatsApp */}
           <button
             type="button"
             onClick={() =>
-              window.open("https://wa.me/917518315870?text=Hello%20B%20Tech%20Kabadiwala%20Team!", "_blank")
+              window.open("https://wa.me/" + helpPhone + "?text=Hello%20B%20Tech%20Kabadiwala%20Team!", "_blank")
             }
             className="flex items-center gap-2 bg-green-500 text-white px-5 py-2 rounded-full hover:bg-green-600 transition-all shadow-sm"
           >
-            <MessageCircle className="w-4 h-4" /> WhatsApp Chat +91 7518315870
+            <MessageCircle className="w-4 h-4" /> WhatsApp Chat +91 {helpPhone}
           </button>
         </div>
       </section>

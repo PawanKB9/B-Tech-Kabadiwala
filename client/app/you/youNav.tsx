@@ -32,9 +32,9 @@ const menuItems = [
     path: "/you/aboutus",
   },
   {
-    label: "Thanks To Faculty",
+    label: "Guiding Mentors",
     icon: GraduationCap,
-    path: "/you/Thanks-To-Faculty",
+    path: "/you/Guiding-Mentors",
   },
   {
     label: "Policy & Agreement",

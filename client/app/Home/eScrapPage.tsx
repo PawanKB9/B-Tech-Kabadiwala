@@ -34,7 +34,7 @@ export default function ElectronicsWasteSection() {
     <section className="w-full px-3 py-3">
       {/* Header */}
       <h2 className="text-lg font-bold mb-3 text-gray-800">
-        {electronicsProducts[0].category}
+        {electronicsProducts[0].category} <span className="text-red-600">{ " - Coming Soon!"}</span>
       </h2>
 
       {/* Horizontal scroll list */}
