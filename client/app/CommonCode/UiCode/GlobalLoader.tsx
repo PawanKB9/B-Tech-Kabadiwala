@@ -8,7 +8,7 @@ export default function GlobalLoader({ isLoading }: { isLoading: boolean }) {
 
   const phoneNumber = process.env.NEXT_PUBLIC_HELP_PHONE || "8005000270";
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/${phoneNumber}`, "_blank");
+    window.open(`https://wa.me/+91 ${phoneNumber}`, "_blank");
   };
   const handleCall = () => {
     window.location.href = `tel:${phoneNumber}`;

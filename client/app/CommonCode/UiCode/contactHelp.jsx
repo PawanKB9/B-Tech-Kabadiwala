@@ -18,11 +18,11 @@ export default function ContactHelp() {
   }
 
   const handleCall = () => {
-    window.location.href = `tel:${phoneNumber}`;
+    window.location.href = `tel:+91 ${phoneNumber}`;
   };
 
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/${phoneNumber}`, "_blank");
+    window.open(`https://wa.me/+91 ${phoneNumber}`, "_blank");
   };
 
   return (
