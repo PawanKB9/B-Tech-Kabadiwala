@@ -330,7 +330,7 @@ func NextInvoiceNumber(ctx context.Context, db *mongo.Database) (string, error) 
 		return "", err
 	}
 
-	return fmt.Sprintf("BK/%s/%06d", fy, result.Seq), nil
+	return fmt.Sprintf("BTK/%s/%06d", fy, result.Seq), nil
 }
 
 // Invoice Handler

@@ -80,9 +80,9 @@ type InvoiceItem struct {
 	ScrapName   string             `bson:"scrapName,omitempty" json:"scrapName,omitempty"` // in Custom order, ScrapName + Category concate
     MeasureType string             `bson:"measureType" json:"measureType"` // "weight" or "piece"
     Weight      float64            `bson:"weight,omitempty" json:"weight,omitempty"`
-    Amount      float64            `bson:"amount,omitempty" json:"amount,omitempty"`
-    Rate        float64            `bson:"rate,omitempty" json:"rate,omitempty"`
     Piece       int32              `bson:"piece,omitempty" json:"piece,omitempty"`
+    Rate        float64            `bson:"rate,omitempty" json:"rate,omitempty"`
+    Amount      float64            `bson:"amount,omitempty" json:"amount,omitempty"`
 }
 
 type Invoice struct {
