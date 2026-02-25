@@ -68,10 +68,10 @@ export default function InvoiceCard({ orderId }: InvoiceProps) {
         </button>
       </div>
 
-      {/* Seller & Customer */}
+      {/* Buyer & Customer */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <h3 className="font-semibold mb-1">Seller</h3>
+          <h3 className="font-semibold mb-1">Buyer</h3>
           <p>{invoice.buyer.name}</p>
           {invoice.buyer.company && <p>{invoice.buyer.company}</p>}
           {invoice.buyer.udyamNo && (

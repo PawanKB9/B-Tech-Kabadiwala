@@ -7,12 +7,22 @@ import (
 )
 
 // Common item structure shared by both Order and Cart.
+// type Item struct {
+//     ProductID   primitive.ObjectID `bson:"productId,omitempty" json:"productId,omitempty"` // Ref: Products
+// 	ScrapName   string             `bson:"scrapName,omitempty" json:"scrapName,omitempty"` // in Custom order, ScrapName + Category concate
+//     MeasureType string             `bson:"measureType" json:"measureType"` // "weight" or "piece"
+//     Weight      float64            `bson:"weight,omitempty" json:"weight,omitempty"`
+//     Piece       int32              `bson:"piece,omitempty" json:"piece,omitempty"`
+// }
+
 type Item struct {
     ProductID   primitive.ObjectID `bson:"productId,omitempty" json:"productId,omitempty"` // Ref: Products
 	ScrapName   string             `bson:"scrapName,omitempty" json:"scrapName,omitempty"` // in Custom order, ScrapName + Category concate
     MeasureType string             `bson:"measureType" json:"measureType"` // "weight" or "piece"
     Weight      float64            `bson:"weight,omitempty" json:"weight,omitempty"`
     Piece       int32              `bson:"piece,omitempty" json:"piece,omitempty"`
+    Rate        float64            `bson:"rate,omitempty" json:"rate,omitempty"`
+    Amount      float64            `bson:"amount,omitempty" json:"amount,omitempty"`
 }
 
 // BaseModel
@@ -45,11 +55,12 @@ type Order struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	BaseModel    `bson:",inline"` // Inherit common fields
 	Items        []Item           `bson:"items" json:"items"`
+	ExtraBonus   float64          `bson:"extraBonus,omitempty" json:"extraBonus,omitempty"`
 	TotalAmount  float64          `bson:"totalAmount,omitempty" json:"totalAmount,omitempty"`
 	IsCustomOrder bool            `bson:"isCustomOrder" json:"isCustomOrder"`
 	Location     GeoJSONPoint     `bson:"location" json:"location"`
 	Status       string           `bson:"status" json:"status"` // Enum -> [ "Confirmed", "Out for Pickup", "Arrived", "Sold", "Picked", "Cancelled", "Recycled"]
-	Payment      string           `bson:"payment" json:"payment"`           // Enum ["Not Paid", "Online", "Cash"]
+	Payment      string           `bson:"payment" json:"payment"` // Enum ["Not Paid", "Online", "Cash"]
 	TransactionID string          `bson:"transactionId,omitempty" json:"transactionId,omitempty"`
 	CenterID     *primitive.ObjectID `bson:"centerId,omitempty" json:"centerId,omitempty"`
 	StoreID      *primitive.ObjectID `bson:"storeId,omitempty" json:"storeId,omitempty"`
@@ -75,15 +86,15 @@ type Taxes struct {
 	HandlingCharge float64 `bson:"handlingCharge,omitempty" json:"handlingCharge,omitempty"`
 }
 
-type InvoiceItem struct {
-    ProductID   primitive.ObjectID `bson:"productId,omitempty" json:"productId,omitempty"` // Ref: Products
-	ScrapName   string             `bson:"scrapName,omitempty" json:"scrapName,omitempty"` // in Custom order, ScrapName + Category concate
-    MeasureType string             `bson:"measureType" json:"measureType"` // "weight" or "piece"
-    Weight      float64            `bson:"weight,omitempty" json:"weight,omitempty"`
-    Piece       int32              `bson:"piece,omitempty" json:"piece,omitempty"`
-    Rate        float64            `bson:"rate,omitempty" json:"rate,omitempty"`
-    Amount      float64            `bson:"amount,omitempty" json:"amount,omitempty"`
-}
+// type InvoiceItem struct {
+//     ProductID   primitive.ObjectID `bson:"productId,omitempty" json:"productId,omitempty"` // Ref: Products
+// 	ScrapName   string             `bson:"scrapName,omitempty" json:"scrapName,omitempty"` // in Custom order, ScrapName + Category concate
+//     MeasureType string             `bson:"measureType" json:"measureType"` // "weight" or "piece"
+//     Weight      float64            `bson:"weight,omitempty" json:"weight,omitempty"`
+//     Piece       int32              `bson:"piece,omitempty" json:"piece,omitempty"`
+//     Rate        float64            `bson:"rate,omitempty" json:"rate,omitempty"`
+//     Amount      float64            `bson:"amount,omitempty" json:"amount,omitempty"`
+// }
 
 type Invoice struct {
 	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
@@ -93,9 +104,10 @@ type Invoice struct {
 	Buyer    Buyer    `bson:"buyer" json:"buyer"`
 	Customer Customer `bson:"customer" json:"customer"`
 
-	Items []InvoiceItem `bson:"items" json:"items"`
+	Items []Item `bson:"items" json:"items"`
 
 	TotalAmount float64 `bson:"totalAmount" json:"totalAmount"`
+	ExtraBonus   float64          `bson:"extraBonus,omitempty" json:"extraBonus,omitempty"`
 	Taxes       Taxes   `bson:"taxes,omitempty" json:"taxes,omitempty"`
 
 	PaymentStatus string    `bson:"paymentStatus" json:"paymentStatus"`

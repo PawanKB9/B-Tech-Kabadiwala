@@ -65,56 +65,59 @@ func ValidateOrderItems(items []orderModels.Item, isCustom bool) error {
 
 // Price Calculation
 func CalculateTotal(
-	ctx context.Context,
-	items []orderModels.Item,
-	isCustom bool,
-	centerID primitive.ObjectID,
-	client *mongo.Client,
+    ctx context.Context,
+    items []orderModels.Item,
+    isCustom bool,
+    centerID primitive.ObjectID,
+    client *mongo.Client,
     dbName string,
-	) (float64, error) {
+	) ([]orderModels.Item, float64, error) {
 
-	if isCustom {
-		return 0, nil
-	}
+    if isCustom {
+        return items, 0, nil
+    }
 
-	itemsCtrl := itemsControllers.NewItemsController(client, dbName)
-	productsByCategory, err := itemsCtrl.GetProductsByCenterID(ctx, centerID)
-	if err != nil {
-		return 0, err
-	}
+    itemsCtrl := itemsControllers.NewItemsController(client, dbName)
+    productsByCategory, err := itemsCtrl.GetProductsByCenterID(ctx, centerID)
+    if err != nil {
+        return nil, 0, err
+    }
 
-	var total float64
+    // 🔹 Build product lookup map
+    productMap := make(map[primitive.ObjectID]appModels.Product)
 
-	for _, it := range items {
-		var matched *appModels.Product
+    for _, products := range productsByCategory {
+        for _, p := range products {
+            productMap[p.ID] = p
+        }
+    }
 
-		for _, products := range productsByCategory {
-			for _, p := range products {
-				if  p.ID == it.ProductID {
-					matched = &p
-					break
-				}
-			}
-			if matched != nil {
-				break
-			}
-		}
+    var total float64
 
-		if matched == nil {
-			return 0, fmt.Errorf("product not found: %s", it.ProductID.Hex())
-		}
+    for i := range items {
 
-		switch it.MeasureType {
-		case "weight":
-			total += it.Weight * matched.Rate
-		case "piece":
-			total += float64(it.Piece) * matched.Rate
-		default:
-			return 0, fmt.Errorf("invalid measureType")
-		}
-	}
+        matched, ok := productMap[items[i].ProductID]
+        if !ok {
+            return nil, 0, fmt.Errorf("product not found: %s", items[i].ProductID.Hex())
+        }
 
-	return total, nil
+        // 🔹 Snapshot Rate
+        items[i].Rate = matched.Rate
+
+        // 🔹 Calculate Amount
+        switch items[i].MeasureType {
+        case "weight":
+            items[i].Amount = items[i].Weight * items[i].Rate
+        case "piece":
+            items[i].Amount = float64(items[i].Piece) * items[i].Rate
+        default:
+            return nil, 0, fmt.Errorf("invalid measureType")
+        }
+
+        total += items[i].Amount
+    }
+
+    return items, total, nil
 }
 
 // Internal DB Operations
@@ -247,7 +250,14 @@ func (oc *OrderController) CreateOrder() gin.HandlerFunc {
 		}
 
 		// total, err := CalculateTotal(ctx, req.Items, req.IsCustomOrder, centerID)
-		total, err := CalculateTotal(ctx, req.Items, req.IsCustomOrder, centerID, oc.Client, oc.DBName)
+		updatedItems, total, err := CalculateTotal(
+			ctx,
+			req.Items,
+			req.IsCustomOrder,
+			centerID,
+			oc.Client,
+			oc.DBName,
+		)
 
 		if err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
@@ -261,13 +271,14 @@ func (oc *OrderController) CreateOrder() gin.HandlerFunc {
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
-			Items:           req.Items,
-			TotalAmount:     total,
+			Items:         updatedItems,
+			ExtraBonus:    0,              // 🔒 No bonus at booking stage
+			TotalAmount:   total,          // 🔒 Only calculated total
 			IsCustomOrder: req.IsCustomOrder,
-			Location: orderLocation,
-			Status:          "Confirmed",
-			Payment:         "Not Paid",
-			CenterID:        &centerID,
+			Location:      orderLocation,
+			Status:        StatusConfirmed,
+			Payment:       "Not Paid",
+			CenterID:      &centerID,
 		}
 
 		if err := oc.processOrder(ctx, order); err != nil {

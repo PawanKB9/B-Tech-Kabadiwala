@@ -2,6 +2,14 @@ import FacultyCard from "./FacultyCard";
 
 const facultyData = [
   {
+    name: "Prof. Samsher",
+    department: "Vice Chancellor, HBTU Kanpur",
+    supportingRole:
+      "Visionary leadership and unwavering support, fostering an environment of innovation and sustainability.",
+    image:
+      "https://res.cloudinary.com/dtviazgmp/image/upload/v1771877094/VC_Sir_Img_rzygxg.jpg",
+  },
+  {
     name: "Vinod Kumar Yadav",
     department: "Humanities & Social Sciences",
     supportingRole:

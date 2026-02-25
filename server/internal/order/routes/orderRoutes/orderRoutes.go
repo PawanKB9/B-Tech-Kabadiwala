@@ -17,7 +17,7 @@ func RegisterOrderRoutes(r *gin.Engine, client *mongo.Client, dbName string) {
 	}
 
 	orderCtrl := orderControllers.NewOrderController(client, dbName)
-	invoiceCtrl := orderControllers.NewInvoiceController(client, dbName) // ✅ FIX
+	invoiceCtrl := orderControllers.NewInvoiceController(client, dbName) // FIX
 
 	api := r.Group("/api/orders")
 
@@ -86,12 +86,11 @@ func RegisterOrderAdminRoutes(r *gin.Engine, client *mongo.Client, dbName string
 
 	// Admin → change status
 	orders.PUT("/status/admin", orderCtrl.UpdateOrderStatus())
+	orders.PUT("/update-items/admin", orderCtrl.AdminUpdateOrderFinal()) // at Arrival only
 
 	// Admin select & delete multiple
 	orders.DELETE("/select/delete-many", orderCtrl.DeleteMultipleOrders())
 }
-
-
 
 
 

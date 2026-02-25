@@ -161,30 +161,32 @@ func GenerateInvoicePDF(w io.Writer, invoice orderModels.Invoice) error {
 	pdf.SetMargins(15, 15, 15)
 	pdf.AddPage()
 
+	// ---------------- Header ----------------
 	pdf.SetFont("Arial", "B", 16)
-	pdf.Cell(0, 10, "INVOICE")
+	pdf.Cell(0, 10, "SCRAP PURCHASE INVOICE")
 	pdf.Ln(10)
 
 	pdf.SetFont("Arial", "", 11)
-	pdf.Cell(0, 8, fmt.Sprintf("Invoice No: %s", invoice.InvoiceNumber))
-	pdf.Ln(6)
-
-	pdf.Cell(0, 8, fmt.Sprintf("Date: %s", invoice.Date.Format("02 Jan 2006")))
-	pdf.Ln(10)
-
-	// Seller
-	pdf.SetFont("Arial", "B", 12)
-	pdf.Cell(0, 8, "Seller")
-	pdf.Ln(6)
-
-	pdf.SetFont("Arial", "", 11)
-	pdf.Cell(0, 6, invoice.Buyer.Name)
+	pdf.Cell(0, 6, fmt.Sprintf("Invoice No: %s", invoice.InvoiceNumber))
 	pdf.Ln(5)
 
-	if invoice.Buyer.Company != "" {
-		pdf.Cell(0, 6, invoice.Buyer.Company)
-		pdf.Ln(5)
-	}
+	pdf.Cell(0, 6, fmt.Sprintf("Date: %s", invoice.Date.Format("02 Jan 2006")))
+	pdf.Ln(5)
+
+	pdf.Cell(0, 6, fmt.Sprintf("Payment Status: %s", invoice.PaymentStatus))
+	pdf.Ln(10)
+
+	// ---------------- Buyer (Your Company) ----------------
+	pdf.SetFont("Arial", "B", 12)
+	pdf.Cell(0, 8, "Buyer")
+	pdf.Ln(6)
+
+	pdf.SetFont("Arial", "", 11)
+	pdf.Cell(0, 6, invoice.Buyer.Company)
+	pdf.Ln(5)
+
+	pdf.Cell(0, 6, invoice.Buyer.Name)
+	pdf.Ln(5)
 
 	if invoice.Buyer.UdyamNo != "" {
 		pdf.Cell(0, 6, "Udyam No: "+invoice.Buyer.UdyamNo)
@@ -193,14 +195,12 @@ func GenerateInvoicePDF(w io.Writer, invoice orderModels.Invoice) error {
 
 	pdf.Ln(5)
 
-	// Customer
+	// ---------------- Seller (Customer) ----------------
 	pdf.SetFont("Arial", "B", 12)
-	pdf.Cell(0, 8, "Bill To")
+	pdf.Cell(0, 8, "Purchased From")
 	pdf.Ln(6)
 
 	pdf.SetFont("Arial", "", 11)
-
-	// ✅ FIX 4: Customer struct DOES NOT have Name
 	pdf.Cell(0, 6, invoice.Customer.Name)
 	pdf.Ln(5)
 
@@ -213,33 +213,58 @@ func GenerateInvoicePDF(w io.Writer, invoice orderModels.Invoice) error {
 
 	pdf.Ln(8)
 
-	// Items
+	// ---------------- Items Table ----------------
 	pdf.SetFont("Arial", "B", 11)
 	pdf.CellFormat(60, 8, "Item", "1", 0, "", false, 0, "")
-	pdf.CellFormat(30, 8, "Weight", "1", 0, "", false, 0, "")
+	pdf.CellFormat(30, 8, "Qty", "1", 0, "", false, 0, "")
 	pdf.CellFormat(30, 8, "Rate", "1", 0, "", false, 0, "")
 	pdf.CellFormat(30, 8, "Amount", "1", 1, "", false, 0, "")
 
 	pdf.SetFont("Arial", "", 11)
 
+	var subtotal float64
+
 	for _, item := range invoice.Items {
+
+		var qty string
+		if item.MeasureType == "weight" {
+			qty = fmt.Sprintf("%.2f Kg", item.Weight)
+		} else {
+			qty = fmt.Sprintf("%d Pc", item.Piece)
+		}
+
 		pdf.CellFormat(60, 8, item.ScrapName, "1", 0, "", false, 0, "")
-		pdf.CellFormat(30, 8, fmt.Sprintf("%.2f", item.Weight), "1", 0, "", false, 0, "")
+		pdf.CellFormat(30, 8, qty, "1", 0, "", false, 0, "")
 		pdf.CellFormat(30, 8, fmt.Sprintf("₹%.2f", item.Rate), "1", 0, "", false, 0, "")
 		pdf.CellFormat(30, 8, fmt.Sprintf("₹%.2f", item.Amount), "1", 1, "", false, 0, "")
+
+		subtotal += item.Amount
 	}
 
 	pdf.Ln(6)
 
-	pdf.SetFont("Arial", "B", 12)
-	pdf.Cell(120, 8, "Total Amount")
+	// ---------------- Summary ----------------
+	pdf.SetFont("Arial", "B", 11)
+
+	pdf.Cell(120, 8, "Subtotal")
+	pdf.Cell(0, 8, fmt.Sprintf("₹%.2f", subtotal))
+	pdf.Ln(6)
+
+	if invoice.ExtraBonus > 0 {
+		pdf.Cell(120, 8, "Extra Bonus")
+		pdf.Cell(0, 8, fmt.Sprintf("₹%.2f", invoice.ExtraBonus))
+		pdf.Ln(6)
+	}
+
+	pdf.Cell(120, 8, "Total Amount Paid")
 	pdf.Cell(0, 8, fmt.Sprintf("₹%.2f", invoice.TotalAmount))
 	pdf.Ln(10)
 
+	// ---------------- Footer ----------------
 	pdf.SetFont("Arial", "", 10)
-	pdf.Cell(0, 8, "This is a system generated invoice.")
+	pdf.Cell(0, 6, "This is a system generated scrap purchase invoice.")
 	pdf.Ln(5)
-	pdf.Cell(0, 8, "Thank you for using B Tech Kabadiwala.")
+	pdf.Cell(0, 6, "B Tech Kabadiwala confirms purchase of above materials.")
 
 	return pdf.Output(w)
 }

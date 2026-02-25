@@ -1,7 +1,7 @@
 package orderControllers
 
 // Status Enum:
-// ["Confirmed", "Out for Pickup", "Arrived", "Cancelled", "Picked", "Sold", "Recycled"]
+// ["Confirmed", "Out for Pickup", "Arrived", "User Verified Pickup", "Cancelled", "Picked", "Sold", "Recycled"]
 
 import (
 	"context"
@@ -24,15 +24,15 @@ import (
 
 const DB_NAME = "btech_kabadiwala"
 // -------------------- STATUS VALIDATION --------------------
-
 const (
-	StatusConfirmed      = "Confirmed"
-	StatusOutForPickup   = "Out for Pickup"
-	StatusArrived        = "Arrived"
-	StatusPicked         = "Picked"
-	StatusSold           = "Sold"
-	StatusCancelled      = "Cancelled"
-	StatusRecycled       = "Recycled"
+	StatusConfirmed          = "Confirmed"
+	StatusOutForPickup       = "Out for Pickup"
+	StatusArrived            = "Arrived"
+	StatusUserVerifiedPickup = "User Verified Pickup"
+	StatusPicked             = "Picked"
+	StatusSold               = "Sold"
+	StatusCancelled          = "Cancelled"
+	StatusRecycled           = "Recycled"
 )
 
 var allowedStatuses = map[string]bool{
@@ -40,6 +40,7 @@ var allowedStatuses = map[string]bool{
 	"Out for Pickup": true,
 	"Arrived":        true,
 	"Picked":         true,
+	"User Verified Pickup": true, // for user-initiated status update
 	"Sold":           true,
 	"Cancelled":      true,
 	"Recycled":       true,
@@ -97,6 +98,7 @@ func (oc *OrderController) updateUserActivityOnSold(
 		options.Update().SetUpsert(true),
 	)
 }
+
 
 // User Cancell Activity
 func (oc *OrderController) updateUserActivityOnCancel(userID primitive.ObjectID) {
@@ -175,6 +177,22 @@ func (oc *OrderController) UpdateOrderStatus() gin.HandlerFunc {
 			return
 		}
 
+		// Prevent modification of terminal states
+		if order.Status == StatusCancelled || order.Status == StatusRecycled {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "cannot modify terminal order status",
+			})
+			return
+		}
+
+		// Validate state transition
+		if !IsValidStatusTransition(order.Status, req.Status) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("invalid status transition from %s to %s", order.Status, req.Status),
+			})
+			return
+		}
+
 		if order.Status == req.Status {
 			c.JSON(http.StatusOK, gin.H{
 				"message": "status unchanged",
@@ -222,7 +240,8 @@ func (oc *OrderController) handlePostStatusActions(order orderModels.Order, stat
 	}
 }
 
-// USER: UPDATE ORDER STATUS (Arrived → Picked)
+// USER: Confirm Pickup After Admin Finalization
+// Picked → User Verified Pickup
 func (oc *OrderController) UserUpdateOrderStatus() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -238,7 +257,6 @@ func (oc *OrderController) UserUpdateOrderStatus() gin.HandlerFunc {
 		}
 
 		req.OrderID = strings.TrimSpace(req.OrderID)
-
 		if req.OrderID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "orderId is required"})
 			return
@@ -268,44 +286,89 @@ func (oc *OrderController) UserUpdateOrderStatus() gin.HandlerFunc {
 			return
 		}
 
+		// 🔒 Ownership validation
 		if order.UserID != userID {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
 
-		if order.Status != StatusArrived {
+		// 🔒 Block terminal states
+		if order.Status == StatusCancelled ||
+			order.Status == StatusRecycled ||
+			order.Status == StatusSold {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "order can only be picked after arrival",
+				"error": "cannot modify terminal order",
 			})
 			return
 		}
+
+		// 🔒 Allow only Picked → User Verified Pickup
+		if order.Status != StatusPicked {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "pickup can only be verified after final settlement",
+			})
+			return
+		}
+
+		now := time.Now()
 
 		res, err := orderCol.UpdateOne(
 			ctx,
 			bson.M{
 				"_id":    order.ID,
-				"status": StatusArrived,
+				"status": StatusPicked,
 			},
-			bson.M{"$set": bson.M{
-				"status":    StatusPicked,
-				"updatedAt": time.Now(),
-			}},
+			bson.M{
+				"$set": bson.M{
+					"status":    StatusUserVerifiedPickup,
+					"updatedAt": now,
+				},
+			},
 		)
+
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update order"})
 			return
 		}
 
 		if res.MatchedCount == 0 {
-			c.JSON(http.StatusConflict, gin.H{"error": "order already updated"})
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "order already updated",
+			})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message": "order picked successfully",
-			"status":  StatusPicked,
+			"message": "pickup verified successfully",
+			"status":  StatusUserVerifiedPickup,
 		})
 	}
+}
+
+func IsValidStatusTransition(current, next string) bool {
+
+	transitions := map[string][]string{
+		StatusConfirmed:          {StatusOutForPickup, StatusCancelled},
+		StatusOutForPickup:       {StatusArrived, StatusCancelled},
+		StatusArrived:            {StatusUserVerifiedPickup, StatusCancelled},
+		StatusUserVerifiedPickup: {StatusPicked},
+		StatusPicked:             {StatusSold},
+		StatusSold:               {StatusRecycled},
+		StatusCancelled:          {},
+		StatusRecycled:           {},
+	}
+
+	allowedNext, ok := transitions[current]
+	if !ok {
+		return false
+	}
+
+	for _, s := range allowedNext {
+		if s == next {
+			return true
+		}
+	}
+	return false
 }
 
 // Generate Invoice Number
@@ -333,8 +396,8 @@ func NextInvoiceNumber(ctx context.Context, db *mongo.Database) (string, error) 
 	return fmt.Sprintf("BTK/%s/%06d", fy, result.Seq), nil
 }
 
-// Invoice Handler
 func (oc *OrderController) createInvoiceIfNotExists(order orderModels.Order) error {
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -343,23 +406,16 @@ func (oc *OrderController) createInvoiceIfNotExists(order orderModels.Order) err
 		"invoices",
 	)
 
-	// 1. Prevent duplicate invoice
-	count, err := invoiceCol.CountDocuments(ctx, bson.M{
-		"orderId": order.ID,
-	})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
+	// 🔒 Unique index required:
+	// db.invoices.createIndex({ orderId: 1 }, { unique: true })
 
-	// 2. Generate invoice number
+	// Generate invoice number
 	invoiceNumber, err := NextInvoiceNumber(ctx, oc.Client.Database(oc.DBName))
 	if err != nil {
 		return err
 	}
 
+	// Fetch user snapshot
 	userCol := database.GetCollection(
 		oc.Client.Database(oc.DBName),
 		"users",
@@ -371,7 +427,8 @@ func (oc *OrderController) createInvoiceIfNotExists(order orderModels.Order) err
 		return err
 	}
 
-	// 3. Build invoice snapshot
+	now := time.Now()
+
 	invoice := orderModels.Invoice{
 		ID:            primitive.NewObjectID(),
 		OrderId:       order.ID,
@@ -390,19 +447,38 @@ func (oc *OrderController) createInvoiceIfNotExists(order orderModels.Order) err
 			Location: order.Location,
 		},
 
-		Items: mapOrderItemsToInvoiceItems(order.Items),
+		// 🔥 USE FROZEN ORDER SNAPSHOT
+		Items:       order.Items,
+		TotalAmount: order.TotalAmount,
 
-		TotalAmount:   order.TotalAmount,
-		PaymentStatus: "Paid",
+		// 🔥 Include bonus only if exists
+		ExtraBonus: func() float64 {
+			if order.ExtraBonus > 0 {
+				return order.ExtraBonus
+			}
+			return 0
+		}(),
 
-		Date:      time.Now(),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		// Taxes only if implemented
+		Taxes: orderModels.Taxes{},
+
+		PaymentStatus: order.Payment,
+		Date:          now,
+
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
-	// 4. Save invoice
+	// Insert safely (handle duplicate)
 	_, err = invoiceCol.InsertOne(ctx, invoice)
-	return err
+	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
 
 func FinancialYear(t time.Time) string {
@@ -411,23 +487,4 @@ func FinancialYear(t time.Time) string {
 		return fmt.Sprintf("%d-%02d", year-1, year%100)
 	}
 	return fmt.Sprintf("%d-%02d", year, (year+1)%100)
-}
-
-// Helper func to convert order Item to-> Invoice Item
-func mapOrderItemsToInvoiceItems(items []orderModels.Item) []orderModels.InvoiceItem {
-	invoiceItems := make([]orderModels.InvoiceItem, 0, len(items))
-
-	for _, it := range items {
-		invoiceItems = append(invoiceItems, orderModels.InvoiceItem{
-			ProductID:   it.ProductID,
-			ScrapName:   it.ScrapName,
-			MeasureType: it.MeasureType,
-			Weight:      it.Weight,
-			Piece:       it.Piece,
-			Rate:        0,                    // already calculated elsewhere
-			Amount:      0,                    // already calculated elsewhere
-		})
-	}
-
-	return invoiceItems
 }

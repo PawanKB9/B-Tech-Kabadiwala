@@ -281,6 +281,10 @@ export default function PriceDetailsPage({
 
   const total = cart.reduce((a, i) => a + i.price, 0);
 
+  const handleCancelOrder = async () => {
+    if (!orderId) return;
+  }
+
   const handleFinalSell = async () => {
     if (!orderId) return;
 
@@ -378,9 +382,14 @@ export default function PriceDetailsPage({
           </div>
         )}
         {mode === "order" && (
-          <button onClick={handleFinalSell} className="w-full mt-4 bg-green-600 text-white py-2 rounded-xl">
-            Finally Sell
-          </button>
+          <div className="flex font-bold gap-4">
+            <button onClick={handleFinalSell} className="w-full cursor-pointer mt-4 bg-green-600 text-white py-2 rounded-xl">
+              Finally Sell
+            </button>
+            <button onClick={handleCancelOrder} className="w-full cursor-pointer mt-4 bg-red-600 text-white py-2 rounded-xl">
+              Cancel Order
+            </button>
+          </div>
         )}
       </div>
     </main>
