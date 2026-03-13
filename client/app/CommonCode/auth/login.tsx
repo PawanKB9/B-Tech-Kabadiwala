@@ -139,6 +139,7 @@ const LoginForm = () => {
         <input
           type="text"
           value={phone}
+          required
           onChange={(e) => setPhone(e.target.value)}
           className="w-full border rounded px-3 py-2"
         />
@@ -155,6 +156,7 @@ const LoginForm = () => {
         <input
           type={showPassword ? 'text' : 'password'}
           value={password}
+          required
           onChange={(e) => setPassword(e.target.value)}
           className="w-full border rounded px-3 py-2"
         />
