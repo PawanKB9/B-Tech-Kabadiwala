@@ -39,10 +39,12 @@ export const metadata: Metadata = {
     template: "%s | B Tech Kabadiwala",
   },
   description:
-    "B Tech Kabadiwala provides doorstep scrap pickup in Kanpur. Sell paper, iron, plastic, e-waste at best prices. Call or WhatsApp 7518315870.",
+    "B Tech Kabadiwala provides doorstep scrap pickup in Kanpur. Sell paper, iron, plastic, e-waste at best prices. Call or WhatsApp 8005000270.",
   keywords: [
     "kabadiwala in kanpur",
+    "kabadiwala in sultanpur",
     "scrap pickup kanpur",
+    "scrap pickup sultanpur",
     "sell scrap online",
     "e-waste recycling kanpur",
     "b tech kabadiwala",

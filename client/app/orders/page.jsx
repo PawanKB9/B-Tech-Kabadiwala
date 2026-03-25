@@ -19,13 +19,14 @@ export default function TrackPage() {
   }
 
   if (isError || !data) {
-    return (
-      <main className="h-[calc(100vh-56px)] flex items-center justify-center bg-gray-50">
-        <p className="text-red-500 text-lg">
-          There is No Order! It can happens when <br /> user is not Log-in or Don't have any Active Orders 
-        </p>
-      </main>
-    );
+    return <NoCurrentOrder />
+    // return (
+    //   <main className="h-[calc(100vh-56px)] flex items-center justify-center bg-gray-50">
+    //     <p className="text-red-500 text-lg">
+    //       There is No Order! It can happens when <br /> user is not Log-in or Don't have any Active Orders 
+    //     </p>
+    //   </main>
+    // );
   }
 
   /* ================= NORMALIZE API DATA ================= */

@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import PhoneInput from "react-phone-input-2"
 import "react-phone-input-2/lib/style.css"
-import SearchAddress from "../HelperComp/SearchAddress"
+// import SearchAddress from "../HelperComp/SearchAddress"
+import SearchAddress from "../Component/addressSearch"
 
 import { useRequestOtpMutation } from "@/app/RTK Query/appApi"
 import { useCreateUserMutation } from "@/app/RTK Query/userApi"
@@ -49,7 +50,7 @@ export default function SignUpPage() {
       longitude: geo.longitude || null,
       pincode: geo.pincode || null,
       eLoc: geo.eLoc || "",
-      street: geo.street || "",
+      street: geo.address || "",
     })
   }
 

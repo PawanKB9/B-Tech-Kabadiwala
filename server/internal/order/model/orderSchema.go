@@ -50,6 +50,11 @@ type GeoJSONPoint struct {
 	ELoc        string    `bson:"eLoc,omitempty" json:"eLoc,omitempty"`
 }
 
+type StatusHistory struct {
+    Status    string    `bson:"status" json:"status"`
+    Timestamp time.Time `bson:"timestamp" json:"timestamp"`
+}
+
 // Order represents a finalized transaction or pickup.
 type Order struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
@@ -60,6 +65,7 @@ type Order struct {
 	IsCustomOrder bool            `bson:"isCustomOrder" json:"isCustomOrder"`
 	Location     GeoJSONPoint     `bson:"location" json:"location"`
 	Status       string           `bson:"status" json:"status"` // Enum -> [ "Confirmed", "Out for Pickup", "Arrived", "Sold", "Picked", "Cancelled", "Recycled"]
+	StatusHistory  []StatusHistory  `bson:"status_history" json:"status_history"` // [{status: "Confirmed", timestamp: time}, ...]
 	Payment      string           `bson:"payment" json:"payment"` // Enum ["Not Paid", "Online", "Cash"]
 	TransactionID string          `bson:"transactionId,omitempty" json:"transactionId,omitempty"`
 	CenterID     *primitive.ObjectID `bson:"centerId,omitempty" json:"centerId,omitempty"`

@@ -1,50 +1,33 @@
-// lib/mappls.ts
+  // useEffect(() => {
+  //   if (!placeData || !eLoc || !coordinates) return;
+  //   if (lastProcessedEloc.current === eLoc) return;
 
-export interface ReverseGeocodeResult {
-  houseNumber: string
-  houseName: string
-  poi: string
-  street: string
-  village: string
-  district: string
-  subDistrict: string
-  city: string
-  state: string
-  pincode: string
-  lat: string
-  lng: string
-  formatted_address: string
-}
+  //   lastProcessedEloc.current = eLoc;
 
-export async function reverseGeocode(
-  lat: number,
-  lng: number
-): Promise<ReverseGeocodeResult | null> {
-  try {
-    const token = process.env.MAPPLS_ACCESS_TOKEN
+  //   const address = `${placeData.placeName || ""} ${placeData.placeAddress || ""}`.trim();
+  //   const pincodeMatch = address.match(/\b\d{6}\b/);
 
-    if (!token) {
-      throw new Error('MAPPLS_ACCESS_TOKEN not defined')
-    }
+  //   const geo = {
+  //     address,
+  //     eLoc,
+  //     pincode: pincodeMatch ? parseInt(pincodeMatch[0], 10) : null,
+  //     latitude: Array.isArray(coordinates) ? coordinates[1] : null, // [lng, lat]
+  //     longitude: Array.isArray(coordinates) ? coordinates[0] : null,
+  //     coordinates, // [lng, lat]
+  //   };
 
-    const url = `https://search.mappls.com/search/address/rev-geocode?lat=${lat}&lng=${lng}&access_token=${token}`
+  //   console.info("[SearchAddress] final geo ready, calling onSelect:", geo);
+  //   if (typeof onSelect === "function") {
+  //     try {
+  //       onSelect(geo);
+  //     } catch (err) {
+  //       console.error("[SearchAddress] onSelect threw error:", err);
+  //     }
+  //   } else {
+  //     console.warn("[SearchAddress] onSelect is not a function");
+  //   }
 
-    const res = await fetch(url, {
-      method: 'GET',
-      cache: 'no-store', // important for dynamic data
-    })
-
-    if (!res.ok) {
-      throw new Error(`Mappls API error: ${res.status}`)
-    }
-
-    const data = await res.json()
-
-    if (!data?.results?.length) return null
-
-    return data.results[0] as ReverseGeocodeResult
-  } catch (error) {
-    console.error('Reverse Geocode Error:', error)
-    return null
-  }
-}
+  //   setPlaceData(null);
+  //   setEloc("");
+  //   setCoordinates(null);
+  // }, [placeData, eLoc, coordinates, onSelect]);

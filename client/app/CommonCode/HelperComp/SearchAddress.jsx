@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -107,39 +108,79 @@ export default function SearchAddress({ onSelect }) {
   }, []);
 
   // Combine placeData + coordinates -> final object and call onSelect
+
   useEffect(() => {
-    if (!placeData || !eLoc || !coordinates) return;
-    if (lastProcessedEloc.current === eLoc) return;
+  if (!coordinates) return;
 
-    lastProcessedEloc.current = eLoc;
+  const processLocation = async () => {
+    const lat = coordinates[1];
+    const lng = coordinates[0];
 
-    const address = `${placeData.placeName || ""} ${placeData.placeAddress || ""}`.trim();
-    const pincodeMatch = address.match(/\b\d{6}\b/);
+    let address = "";
+    let pincode = null;
+
+    const rawAddress = `${placeData?.placeName || ""} ${placeData?.placeAddress || ""}`.trim();
+
+    // 🔹 Check if address is meaningful
+    const hasRealAddress =
+      rawAddress &&
+      rawAddress.toLowerCase() !== "current location";
+
+    // ===============================
+    // CASE 1 — Valid search result
+    // ===============================
+    if (placeData && hasRealAddress) {
+      address = rawAddress;
+
+      const match = address.match(/\b\d{6}\b/);
+      pincode = match ? parseInt(match[0], 10) : null;
+    }
+
+    // ===============================
+    // CASE 2 — Current Location
+    // ===============================
+    else {
+      const token = process.env.NEXT_PUBLIC_MAPPLS_KEY;
+
+      try {
+        const res = await fetch(
+          `https://search.mappls.com/search/address/rev-geocode?lat=${lat}&lng=${lng}&access_token=${token}`
+        );
+
+        const data = await res.json();
+        const result = data?.results?.[0];
+
+        if (result) {
+          address = result.formatted_address || "";
+          pincode = result.pincode
+            ? parseInt(result.pincode, 10)
+            : null;
+        }
+      } catch (err) {
+        console.error("Reverse geocode failed:", err);
+      }
+    }
 
     const geo = {
       address,
-      eLoc,
-      pincode: pincodeMatch ? parseInt(pincodeMatch[0], 10) : null,
-      latitude: Array.isArray(coordinates) ? coordinates[1] : null, // [lng, lat]
-      longitude: Array.isArray(coordinates) ? coordinates[0] : null,
-      coordinates, // [lng, lat]
+      eLoc: placeData?.eLoc || null,
+      pincode,
+      latitude: lat,
+      longitude: lng,
+      coordinates,
     };
 
-    console.info("[SearchAddress] final geo ready, calling onSelect:", geo);
-    if (typeof onSelect === "function") {
-      try {
-        onSelect(geo);
-      } catch (err) {
-        console.error("[SearchAddress] onSelect threw error:", err);
-      }
-    } else {
-      console.warn("[SearchAddress] onSelect is not a function");
-    }
+    console.info("[SearchAddress] final geo:", geo);
+
+    onSelect?.(geo);
 
     setPlaceData(null);
     setEloc("");
     setCoordinates(null);
-  }, [placeData, eLoc, coordinates, onSelect]);
+  };
+
+  processLocation();
+}, [placeData, coordinates, onSelect]);
 
   return (
     <div className="mb-1">
@@ -156,7 +197,7 @@ export default function SearchAddress({ onSelect }) {
     </div>
   );
 }
-// ----------------------------------------------------------------------
+
 // HiddenMapElocToLatLng (updated): waits for SDK/plugin to be fully ready before calling getPinDetails
 function HiddenMapElocToLatLng({ eLoc, onLatLng }) {
   const mapRef = useRef(null);
