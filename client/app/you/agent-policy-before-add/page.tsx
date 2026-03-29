@@ -1,5 +1,3 @@
-// app/terms/page.tsx  (SERVER COMPONENT)
-
 import AgentPolicyBeforeAdd from "./agentPolicy";
 import AcceptButton from "./AcceptButton";
 
