@@ -4,7 +4,7 @@ import AcceptButton from "./AcceptButton";
 
 export default function TermsPage() {
   return (
-    <div className="max-w-5xl mx-auto p-6 border rounded-lg shadow">
+    <div className="max-w-5xl p-6 mx-auto pb-16 border rounded-lg shadow">
       <AgentPolicyBeforeAdd />
 
       <Suspense fallback={<div>Loading...</div>}>
