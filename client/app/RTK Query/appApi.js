@@ -18,7 +18,7 @@ export const api = createApi({
     },
   }),
 
-  tagTypes: ['Products', 'Cart', 'Items', 'App', 'Centers', 'Auth', 'User', 'Activity', 'Orders', 'Invoices', 'Admin', ],
+  tagTypes: ['Products', 'Cart', 'Items', 'App', 'Centers', 'Auth', 'User', 'Activity', 'Orders', 'Invoices', 'Admin', 'Agent' ],
 
   endpoints: (builder) => ({
     // -------------------- PRODUCTS --------------------

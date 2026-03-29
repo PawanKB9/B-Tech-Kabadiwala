@@ -8,6 +8,7 @@ import {
   FileText,
   History,
   GraduationCap,
+  UserPlus,
 } from "lucide-react";
 
 const menuItems = [
@@ -40,6 +41,11 @@ const menuItems = [
     label: "Policy & Agreement",
     icon: FileText,
     path: "/you/terms&policy",
+  },
+  {
+    label: "Add Agent",
+    icon: UserPlus,
+    path: "/you/add-agent",
   },
 ];
 

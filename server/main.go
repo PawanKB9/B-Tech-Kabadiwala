@@ -23,6 +23,7 @@ import (
 	itemsRoute "github.com/PawanKB9/BTechKabadiwala/internal/appCatalog/routes"
 	centerRoutes "github.com/PawanKB9/BTechKabadiwala/internal/admin/center/routes"
 	securityRoute "github.com/PawanKB9/BTechKabadiwala/internal/security/routes"
+	agentRoute "github.com/PawanKB9/BTechKabadiwala/internal/admin/PickupAgent/routes"
 )
 
 func main() {
@@ -174,6 +175,9 @@ r.Use(cors.New(cors.Config{
 
 	// Admin / Centers
 	centerRoutes.RegisterCenterRoutes(r, client, mongoDB)
+
+	// ✅ Agent Routes (NEW)
+	agentRoute.RegisterAgentRoutes(r, client, mongoDB)
 
 	// ---------------- SERVER ----------------
 	srv := &http.Server{
