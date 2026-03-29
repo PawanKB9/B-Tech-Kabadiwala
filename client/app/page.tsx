@@ -11,6 +11,7 @@ import CustomOrderForm from "./Home/customOrder"
 import AuthGuard from "./CommonCode/auth/authGaurd"
 import SlidingInfoBar from "./CommonCode/UiCode/helpBar"
 import ElectronicsWasteSection from "./Home/eScrapPage"
+import ServiceNotice from "./Home/service"
 // import GlobalLoader from "./CommonCode/UiCode/GlobalLoader" // for testing
 
 export const metadata = {
@@ -32,7 +33,8 @@ export default function Home() {
         {/* <GlobalLoader isLoading={true} /> */}
         {/* <Offers offerMsg={offerMsg} /> */}
         <SlidingInfoBar />
-        <SearchScrap />
+        {/* <SearchScrap /> */}
+        <ServiceNotice />
         <CustomOrderForm />
         <DailyScrapsSection />
         <ElectronicsWasteSection/>
