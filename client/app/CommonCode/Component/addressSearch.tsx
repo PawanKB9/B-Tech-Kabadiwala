@@ -212,7 +212,7 @@ function HiddenMapElocToLatLng({ eLoc, onLatLng }: any) {
         zoom: 5,
       });
 
-      map.addListener("load", () => {
+      map.on("load", () => {
         mapInstance.current = map;
         ready.current = true;
       });

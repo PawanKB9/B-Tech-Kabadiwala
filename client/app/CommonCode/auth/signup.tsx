@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import PhoneInput from "react-phone-input-2"
-import "react-phone-input-2/lib/style.css"
+// import "react-phone-input-2/lib/style.css"
 // import SearchAddress from "../HelperComp/SearchAddress"
 import SearchAddress from "../Component/addressSearch"
 
@@ -495,13 +495,13 @@ export default function SignUpPage() {
 //           country="in"
 //           value={phone}
 //           onChange={(value) => setPhone(value)}
-          // inputStyle={{
-          //   width: "100%",
-          //   padding: "22px 44px",
-          //   fontSize: "1rem",
-          //   borderRadius: "0.5rem",
-          //   border: "1px solid #d1d5db",
-          // }}
+//           inputStyle={{
+//             width: "100%",
+//             padding: "22px 44px",
+//             fontSize: "1rem",
+//             borderRadius: "0.5rem",
+//             border: "1px solid #d1d5db",
+//           }}
 //         />
 //       </div>
 
