@@ -12,7 +12,11 @@ const MAPPLS_KEY =
   process.env.NEXT_PUBLIC_MAPPLS_KEY ||
   "ee287c1a53dc92e27751abf2375968ef";
 
-/* Load script once */
+/* =========================
+   SINGLETON SDK LOADER
+========================= */
+let sdkLoaded = false;
+
 function loadScript(url: string, id: string) {
   return new Promise<void>((resolve, reject) => {
     if (typeof window === "undefined") return reject("SSR");
@@ -30,13 +34,26 @@ function loadScript(url: string, id: string) {
   });
 }
 
+async function loadMapplsSDK() {
+  if (sdkLoaded) return;
+
+  const sdkUrl = `https://apis.mappls.com/advancedmaps/api/${MAPPLS_KEY}/map_sdk?layer=vector&v=3.0`;
+  const pluginUrl = `https://apis.mappls.com/advancedmaps/api/${MAPPLS_KEY}/map_sdk_plugins?v=3.0&libraries=getPinDetails`;
+
+  await loadScript(sdkUrl, "mappls-sdk");
+  await loadScript(pluginUrl, "mappls-plugin");
+
+  sdkLoaded = true;
+}
+
+/* =========================
+   MAIN COMPONENT
+========================= */
 export default function SearchAddress({ onSelect }: any) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [placeData, setPlaceData] = useState<any>(null);
   const [eLoc, setEloc] = useState("");
-  const [coordinates, setCoordinates] =
-    useState<[number, number] | null>(null);
 
   /* =========================
      LOAD AUTOCOMPLETE
@@ -44,21 +61,14 @@ export default function SearchAddress({ onSelect }: any) {
   useEffect(() => {
     let pluginInstance: any = null;
 
-    const sdkUrl = `https://apis.mappls.com/advancedmaps/api/${MAPPLS_KEY}/map_sdk?layer=vector&v=3.0`;
-    const pluginUrl = `https://apis.mappls.com/advancedmaps/api/${MAPPLS_KEY}/map_sdk_plugins?v=3.0`;
-
-    loadScript(sdkUrl, "mappls-sdk")
-      .then(() => loadScript(pluginUrl, "mappls-plugin"))
+    loadMapplsSDK()
       .then(() => {
         const mappls = window.mappls;
         const inputEl = inputRef.current;
 
         if (!mappls?.search || !inputEl) return;
 
-        /* Ensure valid ID for plugin */
-        if (!inputEl.id) {
-          inputEl.id = "mappls-auto-input";
-        }
+        if (!inputEl.id) inputEl.id = "mappls-auto-input";
 
         pluginInstance = new mappls.search(
           inputEl,
@@ -67,9 +77,20 @@ export default function SearchAddress({ onSelect }: any) {
             if (!data?.length) return;
 
             const p = data[0];
+
+            /* ✅ BEST CASE: DIRECT LAT/LNG */
+            if (p.latitude && p.longitude) {
+              finalizeSelection({
+                latitude: p.latitude,
+                longitude: p.longitude,
+                place: p,
+              });
+              return;
+            }
+
+            /* fallback to eLoc */
             setPlaceData(p);
             setEloc(p.eLoc || "");
-            setCoordinates(null);
           }
         );
       })
@@ -82,177 +103,58 @@ export default function SearchAddress({ onSelect }: any) {
   }, []);
 
   /* =========================
-     FINAL RESULT BUILDER
+     FINALIZER
   ========================= */
-  useEffect(() => {
-    if (!coordinates) return;
+  const finalizeSelection = ({
+    latitude,
+    longitude,
+    place,
+  }: any) => {
+    const raw = `${place?.placeName || ""} ${
+      place?.placeAddress || ""
+    }`.trim();
 
-    const lat = coordinates[1];
-    const lng = coordinates[0];
-
-    let address = "";
-    let pincode: number | null = null;
-
-    const raw =
-      `${placeData?.placeName || ""} ${
-        placeData?.placeAddress || ""
-      }`.trim();
-
-    const valid =
-      raw && raw.toLowerCase() !== "current location";
-
-    if (placeData && valid) {
-      address = raw;
-      const m = address.match(/\b\d{6}\b/);
-      pincode = m ? parseInt(m[0], 10) : null;
-    }
+    const match = raw.match(/\b\d{6}\b/);
 
     const geo = {
-      address,
-      eLoc: placeData?.eLoc || null,
-      pincode,
-      latitude: lat,
-      longitude: lng,
-      coordinates,
+      address: raw,
+      eLoc: place?.eLoc || null,
+      pincode: match ? Number(match[0]) : null,
+      latitude,
+      longitude,
+      coordinates: [longitude, latitude],
     };
 
     onSelect?.(geo);
-
-    setPlaceData(null);
-    setEloc("");
-    setCoordinates(null);
-  }, [coordinates, placeData, onSelect]);
+  };
 
   /* =========================
-     CURRENT LOCATION
-  ========================= */
-  function useCurrentLocation() {
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-
-      const r = await fetch(
-        `/api/mappls/reverse?lat=${latitude}&lng=${longitude}`
-      );
-      const d = await r.json();
-      const r0 = d.results?.[0] || {};
-
-      const geo = {
-        address: r0.formatted_address || "",
-        eLoc: r0.eLoc || null,
-        pincode: r0.pincode ? Number(r0.pincode) : null,
-        latitude,
-        longitude,
-        coordinates: [longitude, latitude] as [number, number],
-      };
-
-      onSelect?.(geo);
-    });
-  }
-
-  return (
-    <div className="mb-1">
-      <input
-        id="mappls-auto-input"
-        ref={inputRef}
-        type="text"
-        className="w-full border rounded px-3 py-2"
-        placeholder="Search places or eLoc's..."
-        autoComplete="off"
-      />
-
-      <button
-        type="button"
-        onClick={useCurrentLocation}
-        className="mt-2 text-sm text-blue-600"
-      >
-        Use Current Location
-      </button>
-
-      <HiddenMapElocToLatLng
-        eLoc={eLoc}
-        onLatLng={setCoordinates}
-      />
-    </div>
-  );
-}
-
-/* ======================================================
-   HIDDEN MAP — eLoc → Lat/Lng
-====================================================== */
-function HiddenMapElocToLatLng({ eLoc, onLatLng }: any) {
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const mapInstance = useRef<any>(null);
-  const ready = useRef(false);
-
-  /* =========================
-     INIT HIDDEN MAP (NO CALLBACK)
-  ========================= */
-  useEffect(() => {
-    let mounted = true;
-
-    const sdkUrl =
-      `https://apis.mappls.com/advancedmaps/api/${MAPPLS_KEY}` +
-      `/map_sdk?layer=vector&v=3.0`;
-
-    const pluginUrl =
-      `https://apis.mappls.com/advancedmaps/api/${MAPPLS_KEY}` +
-      `/map_sdk_plugins?v=3.0&libraries=getPinDetails`;
-
-    async function init() {
-      await loadScript(sdkUrl, "mappls-hidden-sdk");
-      await loadScript(pluginUrl, "mappls-hidden-plugin");
-
-      if (!mounted || !mapRef.current) return;
-
-      const mappls = window.mappls;
-      if (!mappls?.Map) return;
-
-      const map = new mappls.Map(mapRef.current, {
-        center: [28.61, 77.23],
-        zoom: 5,
-      });
-
-      map.on("load", () => {
-        mapInstance.current = map;
-        ready.current = true;
-      });
-    }
-
-    init();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  /* =========================
-     eLoc → LatLng
+     eLoc → LatLng (fallback only)
   ========================= */
   useEffect(() => {
     if (!eLoc) return;
 
     let cancelled = false;
+    let attempts = 0;
 
     const tryFetch = () => {
       if (cancelled) return;
 
-      const mappls = window.mappls;
-
-      if (!ready.current || !mapInstance.current) {
-        setTimeout(tryFetch, 300);
+      if (attempts > 10) {
+        console.error("getPinDetails timeout");
         return;
       }
 
+      const mappls = window.mappls;
+
       if (!mappls?.getPinDetails) {
+        attempts++;
         setTimeout(tryFetch, 300);
         return;
       }
 
       mappls.getPinDetails(
-        {
-          map: mapInstance.current,
-          pin: eLoc,
-        },
+        { pin: eLoc },
         (data: any) => {
           if (cancelled) return;
 
@@ -263,9 +165,11 @@ function HiddenMapElocToLatLng({ eLoc, onLatLng }: any) {
             typeof coords.lng === "number" &&
             typeof coords.lat === "number"
           ) {
-            onLatLng([coords.lng, coords.lat]);
-          } else {
-            onLatLng(null);
+            finalizeSelection({
+              latitude: coords.lat,
+              longitude: coords.lng,
+              place: placeData,
+            });
           }
         }
       );
@@ -276,18 +180,60 @@ function HiddenMapElocToLatLng({ eLoc, onLatLng }: any) {
     return () => {
       cancelled = true;
     };
-  }, [eLoc, onLatLng]);
+  }, [eLoc]);
+
+  /* =========================
+     CURRENT LOCATION
+  ========================= */
+  const useCurrentLocation = () => {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+
+      try {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 5000);
+
+        const res = await fetch(
+          `/api/mappls/reverse?lat=${latitude}&lng=${longitude}`,
+          { signal: controller.signal }
+        );
+
+        const data = await res.json();
+        const r0 = data?.results?.[0] || {};
+
+        onSelect?.({
+          address: r0.formatted_address || "",
+          eLoc: r0.eLoc || null,
+          pincode: r0.pincode ? Number(r0.pincode) : null,
+          latitude,
+          longitude,
+          coordinates: [longitude, latitude],
+        });
+      } catch (err) {
+        console.error("Reverse geocode failed", err);
+      }
+    });
+  };
 
   return (
-    <div
-      ref={mapRef}
-      style={{
-        width: 0,
-        height: 0,
-        position: "absolute",
-        visibility: "hidden",
-      }}
-    />
+    <div className="mb-1">
+      <input
+        id="mappls-auto-input"
+        ref={inputRef}
+        type="text"
+        className="w-full border rounded px-3 py-2"
+        placeholder="Search places or eLoc..."
+        autoComplete="off"
+      />
+
+      <button
+        type="button"
+        onClick={useCurrentLocation}
+        className="mt-2 text-sm text-blue-600"
+      >
+        Use Current Location
+      </button>
+    </div>
   );
 }
 
