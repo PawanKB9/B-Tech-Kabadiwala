@@ -54,7 +54,7 @@
     "app/RTK Query/selectors.js",
     "app/RTK Query/store.js",
     ".next/dev/types/**/*.ts"
-, "app/CommonCode/auth/authGaurd.tsx", "app/CommonCode/auth/mapplsLoader.jsx", "app/CommonCode/Component/addressSearch.tsx"  ],
+, "app/CommonCode/auth/authGaurd.tsx", "app/CommonCode/auth/mapplsLoader.jsx", "app/CommonCode/Component/addressSearch.tsx", "app/knowledge/3dComp.jsx", "app/knowledge/3dRecycle.jsx"  ],
   "exclude": [
     "node_modules"
   ]

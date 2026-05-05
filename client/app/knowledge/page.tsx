@@ -11,6 +11,9 @@ import { useCaptcha } from "../CommonCode/auth/captchaHook";
 import SlidingInfoBar from "../CommonCode/UiCode/helpBar";
 import { useGetAppDataQuery } from "@/app/RTK Query/appApi";
 import GlobalLoader from "../CommonCode/UiCode/GlobalLoader";
+import UAVScene from "./3dComp";
+import RecyclingScene from "./3dRecycle";
+import RecyclingNature from "./3dpics";
 
 export default function KnowledgeBase() {
   const { getCaptchaToken } = useCaptcha();
@@ -54,10 +57,16 @@ export default function KnowledgeBase() {
       {/* Offer */}
       {/* <Offers offerMsg={offer} /> */}
       <SlidingInfoBar />
+      {/* <UAVScene/> */}
+      
 
       {/* Hero Slider (autoplay banners) */}
       <div className="my-3">
         <HeroSlider images={autoplayBanner} />
+      </div>
+      <div className="flex justify-evenly p-6 gap-6">
+        <RecyclingScene />
+        <RecyclingNature />
       </div>
 
       {/* Promo Posters */}
