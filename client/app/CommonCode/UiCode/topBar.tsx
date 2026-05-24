@@ -206,7 +206,7 @@ export function UnknownUser(){
           Unknown User
         </h2>
         <p className="text-green-700 text-sm">
-          User is Not loged in Please do Login or Signup...
+          User is not logged in
         </p>
       </div>
 

@@ -32,11 +32,11 @@ const menuItems = [
     icon: Info,
     path: "/you/aboutus",
   },
-  {
-    label: "Guiding Mentors",
-    icon: GraduationCap,
-    path: "/you/Guiding-Mentors",
-  },
+  // {
+  //   label: "Guiding Mentors",
+  //   icon: GraduationCap,
+  //   path: "/you/Guiding-Mentors",
+  // },
   {
     label: "Policy & Agreement",
     icon: FileText,

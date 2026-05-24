@@ -12,6 +12,7 @@ import AuthGuard from "./CommonCode/auth/authGaurd"
 import SlidingInfoBar from "./CommonCode/UiCode/helpBar"
 import ElectronicsWasteSection from "./Home/eScrapPage"
 import ServiceNotice from "./Home/service"
+import UsePoster from "./knowledge/usePoster"
 // import GlobalLoader from "./CommonCode/UiCode/GlobalLoader" // for testing
 
 export const metadata = {
@@ -24,17 +25,20 @@ export const metadata = {
 export default function Home() {
   const offerMsg = `Get extra ₹3 per kg on 20 kg + of
         scrap in a single order`;
-
+    
  return (
-    <main className=" mx-auto pb-32 h-[calc(100vh-56px)] gap-y-3 overflow-y-auto scrollbar-hide bg-zinc-100">
+    <main className="p-1 mx-auto pb-32 h-[calc(100vh-56px)] gap-y-3 overflow-y-auto scrollbar-hide bg-zinc-100">
+      <ProfileCard/>
+      <div className="py-4 px-1">
+        <UsePoster />
+      </div>
       <AuthGuard>
-        <ProfileCard/>
-        <ContactHelp/>
+        {/* <ContactHelp/> */}
         {/* <GlobalLoader isLoading={true} /> */}
         {/* <Offers offerMsg={offerMsg} /> */}
-        <SlidingInfoBar />
-        {/* <SearchScrap /> */}
-        <ServiceNotice />
+        {/* <SlidingInfoBar /> */}
+        <SearchScrap />
+        {/* <ServiceNotice /> */}
         <CustomOrderForm />
         <DailyScrapsSection />
         <ElectronicsWasteSection/>

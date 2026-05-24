@@ -38,12 +38,12 @@ func main() {
 
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
-		log.Fatal("MONGO_URI not set")
+		log.Fatal("MONGO_URI not set") // Prints error and stops program imidiatly
 	}
 
-	mongoDB := os.Getenv("MONGO_DB")
+	mongoDB := os.Getenv("MONGO_DB") // Database Name
 	if mongoDB == "" {
-		log.Fatal("MONGO_DB not set")
+		log.Fatal("MONGO_DB not set") // Prints Error & Stop Exicution
 	}
 
 	// ---------------- REDIS ----------------
@@ -65,7 +65,7 @@ func main() {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	// Prevent proxy header spoofing
+	// Prevents fake IP/header spoofing attacks.
 	if err := r.SetTrustedProxies(nil); err != nil {
 		log.Fatal("Failed to set trusted proxies:", err)
 	}

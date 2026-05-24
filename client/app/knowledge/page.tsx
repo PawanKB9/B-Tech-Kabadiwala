@@ -14,6 +14,7 @@ import GlobalLoader from "../CommonCode/UiCode/GlobalLoader";
 import UAVScene from "./3dComp";
 import RecyclingScene from "./3dRecycle";
 import RecyclingNature from "./3dpics";
+import UsePoster from "./usePoster";
 
 export default function KnowledgeBase() {
   const { getCaptchaToken } = useCaptcha();
@@ -62,7 +63,8 @@ export default function KnowledgeBase() {
 
       {/* Hero Slider (autoplay banners) */}
       <div className="my-3">
-        <HeroSlider images={autoplayBanner} />
+        {/* <HeroSlider images={autoplayBanner} /> */}
+        <UsePoster />
       </div>
       <div className="flex justify-evenly p-6 gap-6">
         <RecyclingScene />
