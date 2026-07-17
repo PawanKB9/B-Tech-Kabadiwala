@@ -22,29 +22,34 @@ export const metadata = {
 };
 
 
-export default function Home() {
-  const offerMsg = `Get extra ₹3 per kg on 20 kg + of
-        scrap in a single order`;
+// export default function Home() {
+//   const offerMsg = `Get extra ₹3 per kg on 20 kg + of
+//         scrap in a single order`;
     
- return (
-    <main className="p-1 mx-auto pb-32 h-[calc(100vh-56px)] gap-y-3 overflow-y-auto scrollbar-hide bg-zinc-100">
-      <ProfileCard/>
-      <div className="py-4 px-1">
-        <UsePoster />
-      </div>
-      <AuthGuard>
-        {/* <ContactHelp/> */}
-        {/* <GlobalLoader isLoading={true} /> */}
-        {/* <Offers offerMsg={offerMsg} /> */}
-        {/* <SlidingInfoBar /> */}
-        <SearchScrap />
-        {/* <ServiceNotice /> */}
-        <CustomOrderForm />
-        <DailyScrapsSection />
-        <ElectronicsWasteSection/>
-        <ActionButtons />
-      </AuthGuard>
-    </main>
-  );
+//  return (
+//     <main className="p-1 mx-auto pb-32 h-[calc(100vh-56px)] gap-y-3 overflow-y-auto scrollbar-hide bg-zinc-100">
+//       <ProfileCard/>
+//       <div className="py-4 px-1">
+//         <UsePoster />
+//       </div>
+//       <AuthGuard>
+//         {/* <ContactHelp/> */}
+//         {/* <GlobalLoader isLoading={true} /> */}
+//         {/* <Offers offerMsg={offerMsg} /> */}
+//         {/* <SlidingInfoBar /> */}
+//         <SearchScrap />
+//         {/* <ServiceNotice /> */}
+//         <CustomOrderForm />
+//         <DailyScrapsSection />
+//         <ElectronicsWasteSection/>
+//         <ActionButtons />
+//       </AuthGuard>
+//     </main>
+//   );
+// }
+
+export default function Home() {
+
+  return <>Page Not Found</>;
 }
 

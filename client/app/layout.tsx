@@ -57,6 +57,44 @@ export const metadata: Metadata = {
   },
 };
 
+// export default function RootLayout({
+//   children,
+// }: {
+//   children: React.ReactNode;
+// }) {
+//   return (
+//     <html
+//       lang="en"
+//       suppressHydrationWarning
+//       className="bg-zinc-100 text-gray-800"
+//     >
+//       <body
+//         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+//       >
+//         <Providers>
+//           <CaptchaProvider>
+//           <LocalBusinessSchema />
+
+//             {/* NAVBAR — NEVER BLURS */}
+//             <div className="relative z-50 isolate">
+//               <Navbar />
+//             </div>
+
+//             {/* APPLICATION CONTENT */}
+//             <div className="relative z-10">
+//               <UserProvider>
+//                 {children}
+//                 <ToastProvider/>
+//               </UserProvider>
+//             </div>
+
+//           </CaptchaProvider>
+//         </Providers>
+//       </body>
+//     </html>
+//   );
+// }
+
 export default function RootLayout({
   children,
 }: {
@@ -71,25 +109,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
-          <CaptchaProvider>
-          <LocalBusinessSchema />
-
-            {/* NAVBAR — NEVER BLURS */}
-            <div className="relative z-50 isolate">
-              <Navbar />
-            </div>
-
-            {/* APPLICATION CONTENT */}
-            <div className="relative z-10">
-              <UserProvider>
-                {children}
-                <ToastProvider/>
-              </UserProvider>
-            </div>
-
-          </CaptchaProvider>
-        </Providers>
+        Page Not Found
       </body>
     </html>
   );
